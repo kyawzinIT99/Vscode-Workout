@@ -12,22 +12,32 @@ export interface UseTimerReturn {
   pause: () => void;
   reset: () => void;
   stop: () => void;
+  setTime: (newTime: number) => void;
 }
 
 interface UseTimerOptions {
   initialTime?: number;
   countdown?: boolean;
   onComplete?: () => void;
+  onTick?: (currentTime: number) => void;
 }
 
 const useTimer = (options: UseTimerOptions = {}): UseTimerReturn => {
-  const { initialTime = 0, countdown = false, onComplete } = options;
+  const { initialTime = 0, countdown = false, onComplete, onTick } = options;
 
-  const [time, setTime] = useState(initialTime);
+  const [time, setTimeState] = useState(initialTime);
   const [isRunning, setIsRunning] = useState(false);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   // Prevent onComplete from firing more than once per countdown run
   const completedRef = useRef(false);
+  const onTickRef = useRef(onTick);
+  onTickRef.current = onTick;
+
+  // Dynamically set countdown duration
+  const setTime = useCallback((newTime: number) => {
+    setTimeState(newTime);
+    completedRef.current = false;
+  }, []);
 
   // Start timer
   const start = useCallback(() => {
@@ -48,7 +58,7 @@ const useTimer = (options: UseTimerOptions = {}): UseTimerReturn => {
   const reset = useCallback(() => {
     setIsRunning(false);
     completedRef.current = false;
-    setTime(initialTime);
+    setTimeState(initialTime);
     if (intervalRef.current) {
       clearInterval(intervalRef.current);
       intervalRef.current = null;
@@ -59,7 +69,7 @@ const useTimer = (options: UseTimerOptions = {}): UseTimerReturn => {
   const stop = useCallback(() => {
     setIsRunning(false);
     completedRef.current = false;
-    setTime(initialTime);
+    setTimeState(initialTime);
     if (intervalRef.current) {
       clearInterval(intervalRef.current);
       intervalRef.current = null;
@@ -71,11 +81,9 @@ const useTimer = (options: UseTimerOptions = {}): UseTimerReturn => {
     if (!isRunning) return;
 
     intervalRef.current = setInterval(() => {
-      setTime((prevTime) => {
-        if (countdown) {
-          return prevTime > 0 ? prevTime - 1 : 0;
-        }
-        return prevTime + 1;
+      setTimeState((prevTime) => {
+        const newTime = countdown ? (prevTime > 0 ? prevTime - 1 : 0) : prevTime + 1;
+        return newTime;
       });
     }, 1000);
 
@@ -86,6 +94,13 @@ const useTimer = (options: UseTimerOptions = {}): UseTimerReturn => {
       }
     };
   }, [isRunning, countdown]);
+
+  // onTick effect — fires after each time change while running
+  useEffect(() => {
+    if (isRunning && onTickRef.current) {
+      onTickRef.current(time);
+    }
+  }, [time, isRunning]);
 
   // Completion effect — runs after time reaches 0 in countdown mode
   useEffect(() => {
@@ -103,6 +118,7 @@ const useTimer = (options: UseTimerOptions = {}): UseTimerReturn => {
     pause,
     reset,
     stop,
+    setTime,
   };
 };
 

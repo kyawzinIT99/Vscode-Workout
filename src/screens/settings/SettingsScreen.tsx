@@ -15,12 +15,15 @@ import { COLORS, GRADIENTS } from '../../constants/colors';
 import { TYPOGRAPHY } from '../../constants/typography';
 import { useLanguage } from '../../context/LanguageContext';
 import { useTheme } from '../../context/ThemeContext';
+import { useUserContext } from '../../context/UserContext';
 import { Language } from '../../constants/languages';
+import { exportCSV, exportPDF } from '../../services/export';
 
 const SettingsScreen: React.FC = () => {
   const navigation = useNavigation();
   const { language, setLanguage, t } = useLanguage();
   const { theme, toggleTheme, isDark } = useTheme();
+  const { user } = useUserContext();
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [showLanguageMenu, setShowLanguageMenu] = useState(false);
 
@@ -71,21 +74,44 @@ const SettingsScreen: React.FC = () => {
     );
   };
 
-  const handleExportData = async () => {
-    try {
-      const keys = await AsyncStorage.getAllKeys();
-      const data = await AsyncStorage.multiGet(keys);
-      const dataObject = Object.fromEntries(data);
-      const dataString = JSON.stringify(dataObject, null, 2);
-
-      Alert.alert(
-        'Export Data',
-        `Data size: ${(dataString.length / 1024).toFixed(2)} KB\n\nIn production, this would save to a file or share via email.`,
-        [{ text: 'OK' }]
-      );
-    } catch (error) {
-      Alert.alert('❌ Error', 'Failed to export data');
-    }
+  const handleExportData = () => {
+    Alert.alert(
+      'Export Data',
+      'Choose export format:',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'CSV',
+          onPress: async () => {
+            try {
+              await exportCSV();
+            } catch (error) {
+              Alert.alert('Error', 'Failed to export CSV');
+            }
+          },
+        },
+        {
+          text: 'PDF Report',
+          onPress: async () => {
+            try {
+              const stats = user?.stats || {
+                totalWorkouts: 0,
+                currentStreak: 0,
+                longestStreak: 0,
+                totalMinutes: 0,
+                totalCalories: 0,
+                favoriteCategory: 'strength',
+                achievements: [],
+                personalRecords: [],
+              };
+              await exportPDF(stats);
+            } catch (error) {
+              Alert.alert('Error', 'Failed to export PDF');
+            }
+          },
+        },
+      ]
+    );
   };
 
   return (

@@ -3,11 +3,12 @@
  * Main dashboard with workout stats and quick actions
  */
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Dimensions } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
+import * as Haptics from 'expo-haptics';
 import GradientBackground from '../../components/ui/GradientBackground';
 import GlassCard from '../../components/ui/GlassCard';
 import GlassButton from '../../components/ui/GlassButton';
@@ -16,6 +17,8 @@ import { TYPOGRAPHY } from '../../constants/typography';
 import { useUserContext } from '../../context/UserContext';
 import { WorkoutProgram } from '../../types/workout.types';
 import workoutsData from '../../data/workouts.json';
+import { loadTodayWater, addWaterIntake } from '../../services/storage';
+import { WaterDailyLog } from '../../types/workout.types';
 
 const { width } = Dimensions.get('window');
 
@@ -24,6 +27,7 @@ const HomeScreen: React.FC = () => {
   const { user } = useUserContext();
   const [featuredWorkouts, setFeaturedWorkouts] = useState<WorkoutProgram[]>([]);
   const [timeOfDay, setTimeOfDay] = useState('');
+  const [waterLog, setWaterLog] = useState<WaterDailyLog | null>(null);
 
   useEffect(() => {
     // Load featured workouts
@@ -36,6 +40,22 @@ const HomeScreen: React.FC = () => {
     else if (hour < 18) setTimeOfDay('Afternoon');
     else setTimeOfDay('Evening');
   }, []);
+
+  // Reload water data when screen comes into focus
+  useFocusEffect(
+    useCallback(() => {
+      loadTodayWater().then(setWaterLog);
+    }, [])
+  );
+
+  const handleQuickAddWater = async () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    await addWaterIntake(250);
+    const updated = await loadTodayWater();
+    setWaterLog(updated);
+  };
+
+  const waterProgress = waterLog ? Math.min(waterLog.totalMl / waterLog.goalMl, 1) : 0;
 
   const weeklyGoal = 5; // Weekly workout goal
   const weeklyProgress = user?.stats.currentStreak || 0;
@@ -126,6 +146,68 @@ const HomeScreen: React.FC = () => {
             </GlassCard>
           </View>
         </View>
+
+        {/* Water Tracker Widget */}
+        <TouchableOpacity
+          activeOpacity={0.8}
+          onPress={() => navigation.navigate('WaterTracker' as never)}
+        >
+          <GlassCard style={styles.waterCard} gradient={['rgba(102, 126, 234, 0.25)', 'rgba(118, 75, 162, 0.25)']}>
+            <View style={styles.waterCardContent}>
+              <View style={styles.waterLeft}>
+                {/* Mini progress ring */}
+                <View style={styles.waterRing}>
+                  <View style={styles.waterRingBg} />
+                  <View style={[
+                    styles.waterRingFill,
+                    {
+                      borderColor: waterProgress >= 1 ? '#38EF7D' : '#667EEA',
+                      borderRightColor: waterProgress * 360 > 180 ? (waterProgress >= 1 ? '#38EF7D' : '#667EEA') : 'transparent',
+                      borderBottomColor: waterProgress * 360 > 90 ? (waterProgress >= 1 ? '#38EF7D' : '#667EEA') : 'transparent',
+                      borderLeftColor: waterProgress * 360 > 270 ? (waterProgress >= 1 ? '#38EF7D' : '#667EEA') : 'transparent',
+                      transform: [{ rotate: '-90deg' }],
+                    },
+                  ]} />
+                  <Ionicons name="water" size={20} color={waterProgress >= 1 ? '#38EF7D' : '#667EEA'} />
+                </View>
+                <View style={styles.waterInfo}>
+                  <Text style={styles.waterTitle}>Hydration</Text>
+                  <Text style={styles.waterAmount}>
+                    {waterLog?.totalMl || 0} / {waterLog?.goalMl || 2000} ml
+                  </Text>
+                </View>
+              </View>
+              <Ionicons name="chevron-forward" size={20} color={COLORS.textTertiary} />
+            </View>
+            {/* Progress bar */}
+            <View style={styles.waterProgressBar}>
+              <View style={[
+                styles.waterProgressFill,
+                {
+                  width: `${waterProgress * 100}%`,
+                  backgroundColor: waterProgress >= 1 ? '#38EF7D' : '#667EEA',
+                },
+              ]} />
+            </View>
+          </GlassCard>
+        </TouchableOpacity>
+
+        {/* Quick Add Water — separate from card so it's always tappable */}
+        <TouchableOpacity
+          style={styles.waterQuickAddStandalone}
+          onPress={handleQuickAddWater}
+          activeOpacity={0.7}
+        >
+          <LinearGradient
+            colors={['#667EEA', '#764BA2']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
+            style={styles.waterQuickAddGradient}
+          >
+            <Ionicons name="water" size={18} color={COLORS.white} />
+            <Text style={styles.waterQuickAddText}>+250ml</Text>
+          </LinearGradient>
+        </TouchableOpacity>
 
         {/* Featured Workouts */}
         <View style={styles.sectionHeader}>
@@ -356,6 +438,89 @@ const styles = StyleSheet.create({
     color: COLORS.textSecondary,
     fontSize: 10,
     marginTop: 2,
+  },
+  // Water Tracker Widget
+  waterCard: {
+    padding: 16,
+    marginBottom: 24,
+  },
+  waterCardContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 12,
+  },
+  waterLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    flex: 1,
+  },
+  waterRing: {
+    width: 48,
+    height: 48,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  waterRingBg: {
+    position: 'absolute',
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    borderWidth: 4,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+  },
+  waterRingFill: {
+    position: 'absolute',
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    borderWidth: 4,
+    borderTopColor: '#667EEA',
+  },
+  waterInfo: {
+    gap: 2,
+  },
+  waterTitle: {
+    ...TYPOGRAPHY.h4,
+    color: COLORS.textPrimary,
+    fontWeight: '600',
+    fontSize: 16,
+  },
+  waterAmount: {
+    ...TYPOGRAPHY.caption,
+    color: COLORS.textSecondary,
+    fontSize: 13,
+  },
+  waterProgressBar: {
+    height: 6,
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    borderRadius: 3,
+    overflow: 'hidden',
+  },
+  waterProgressFill: {
+    height: '100%',
+    borderRadius: 3,
+  },
+  waterQuickAddStandalone: {
+    alignSelf: 'center',
+    borderRadius: 20,
+    marginTop: -12,
+    marginBottom: 20,
+  },
+  waterQuickAddGradient: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    gap: 6,
+    borderRadius: 20,
+  },
+  waterQuickAddText: {
+    ...TYPOGRAPHY.caption,
+    color: COLORS.white,
+    fontWeight: '600',
+    fontSize: 13,
   },
   sectionHeader: {
     flexDirection: 'row',

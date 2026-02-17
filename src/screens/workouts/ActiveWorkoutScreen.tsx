@@ -3,8 +3,8 @@
  * Main screen for active workout session
  */
 
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Platform, StatusBar } from 'react-native';
+import React, { useState, useCallback } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Platform, StatusBar, Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import GradientBackground from '../../components/ui/GradientBackground';
 import GlassCard from '../../components/ui/GlassCard';
@@ -12,8 +12,12 @@ import GlassButton from '../../components/ui/GlassButton';
 import { COLORS, GRADIENTS } from '../../constants/colors';
 import { TYPOGRAPHY } from '../../constants/typography';
 import { useWorkoutContext } from '../../context/WorkoutContext';
+import { useUserContext } from '../../context/UserContext';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
+import useTimer from '../../hooks/useTimer';
+import useRestTimerSound from '../../hooks/useRestTimerSound';
+import { shareText, getWorkoutShareMessage } from '../../services/sharing';
 
 const ActiveWorkoutScreen: React.FC = () => {
   const navigation = useNavigation();
@@ -25,22 +29,32 @@ const ActiveWorkoutScreen: React.FC = () => {
     nextExercise,
     endWorkout
   } = useWorkoutContext();
+  const { user } = useUserContext();
   const [isResting, setIsResting] = useState(false);
-  const [restTimer, setRestTimer] = useState(0);
   const [currentSetIndex, setCurrentSetIndex] = useState(0);
 
-  // Auto-advance on rest timer completion
-  useEffect(() => {
-    if (isResting && restTimer > 0) {
-      const timer = setTimeout(() => {
-        setRestTimer(restTimer - 1);
-      }, 1000);
-      return () => clearTimeout(timer);
-    } else if (isResting && restTimer === 0) {
-      setIsResting(false);
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+  const soundEnabled = user?.preferences?.soundEffects !== false;
+  const { playBeep, playComplete } = useRestTimerSound({ enabled: soundEnabled });
+
+  const handleRestComplete = useCallback(() => {
+    setIsResting(false);
+    playComplete();
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+  }, [playComplete]);
+
+  const handleRestTick = useCallback((currentTime: number) => {
+    if (currentTime > 0 && currentTime <= 3) {
+      playBeep();
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     }
-  }, [isResting, restTimer]);
+  }, [playBeep]);
+
+  const restTimer = useTimer({
+    initialTime: 0,
+    countdown: true,
+    onComplete: handleRestComplete,
+    onTick: handleRestTick,
+  });
 
   if (!activeSession || !currentWorkout) {
     return (
@@ -69,27 +83,78 @@ const ActiveWorkoutScreen: React.FC = () => {
       setCurrentSetIndex(currentSetIndex + 1);
     }
     if (currentExercise.restTime && currentExercise.restTime > 0) {
-      setRestTimer(currentExercise.restTime);
+      restTimer.setTime(currentExercise.restTime);
+      restTimer.start();
       setIsResting(true);
     }
+  };
+
+  const handleSkipRest = () => {
+    restTimer.stop();
+    setIsResting(false);
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
   };
 
   const handleNextExercise = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
     nextExercise();
+    restTimer.stop();
     setIsResting(false);
-    setRestTimer(0);
     setCurrentSetIndex(0);
   };
 
   const handleEndWorkout = () => {
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+    restTimer.stop();
+
+    const workoutName = activeSession.workoutName;
+    const duration = activeSession.duration || 0;
+    const calories = activeSession.estimatedCalories || 0;
+    const completion = activeSession.completionRate || 0;
+
     endWorkout();
     navigation.goBack();
+
+    // Prompt to share if workout had some completion
+    if (completion > 0) {
+      setTimeout(() => {
+        Alert.alert(
+          'Workout Complete!',
+          'Share your achievement?',
+          [
+            { text: 'Skip', style: 'cancel' },
+            {
+              text: 'Share',
+              onPress: async () => {
+                try {
+                  const message = getWorkoutShareMessage(workoutName, duration, calories, completion);
+                  await shareText(message);
+                } catch {
+                  // Sharing not available
+                }
+              },
+            },
+          ]
+        );
+      }, 500);
+    }
   };
 
   const allSetsCompleted = completedSets >= totalSets;
   const isLastExercise = currentExerciseIndex === currentWorkout.exercises.length - 1;
+
+  // Format rest timer display
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    if (mins > 0) return `${mins}:${secs.toString().padStart(2, '0')}`;
+    return `${secs}`;
+  };
+
+  // Rest timer progress (0 to 1)
+  const restProgress = currentExercise.restTime > 0
+    ? 1 - (restTimer.time / currentExercise.restTime)
+    : 0;
 
   return (
     <GradientBackground colors={GRADIENTS.fire}>
@@ -164,8 +229,39 @@ const ActiveWorkoutScreen: React.FC = () => {
           {isResting && (
             <GlassCard style={styles.restCard} gradient={GRADIENTS.ocean}>
               <Text style={styles.restTitle}>Rest Time</Text>
-              <Text style={styles.restTimer}>{restTimer}s</Text>
+
+              {/* Circular progress indicator */}
+              <View style={styles.timerCircle}>
+                <View style={styles.timerCircleInner}>
+                  <Text style={[
+                    styles.restTimer,
+                    restTimer.time <= 3 && restTimer.time > 0 && styles.restTimerWarning,
+                  ]}>
+                    {formatTime(restTimer.time)}
+                  </Text>
+                  <Text style={styles.restTimerUnit}>
+                    {restTimer.time <= 3 && restTimer.time > 0 ? 'GET READY' : 'seconds'}
+                  </Text>
+                </View>
+                {/* Progress ring background */}
+                <View style={[styles.progressRing, { opacity: 0.2 }]} />
+                {/* Progress ring fill */}
+                <View style={[
+                  styles.progressRing,
+                  {
+                    borderColor: restTimer.time <= 3 ? '#FF6B6B' : '#667EEA',
+                    borderRightColor: 'transparent',
+                    transform: [{ rotate: `${restProgress * 360}deg` }],
+                  },
+                ]} />
+              </View>
+
               <Text style={styles.restMessage}>Get ready for the next set!</Text>
+
+              <TouchableOpacity style={styles.skipRestButton} onPress={handleSkipRest}>
+                <Ionicons name="play-forward" size={18} color={COLORS.textSecondary} />
+                <Text style={styles.skipRestText}>Skip Rest</Text>
+              </TouchableOpacity>
             </GlassCard>
           )}
         </ScrollView>
@@ -174,7 +270,7 @@ const ActiveWorkoutScreen: React.FC = () => {
         <View style={styles.bottomBar}>
           {!allSetsCompleted && (
             <GlassButton
-              title={isResting ? `Resting ${restTimer}s...` : 'Complete Set'}
+              title={isResting ? `Resting ${formatTime(restTimer.time)}...` : 'Complete Set'}
               onPress={handleCompleteSet}
               size="large"
               variant="primary"
@@ -345,18 +441,59 @@ const styles = StyleSheet.create({
   restTitle: {
     ...TYPOGRAPHY.h3,
     color: COLORS.textPrimary,
-    marginBottom: 8,
+    marginBottom: 16,
+  },
+  timerCircle: {
+    width: 140,
+    height: 140,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  timerCircleInner: {
+    alignItems: 'center',
   },
   restTimer: {
     fontSize: 56,
     fontWeight: 'bold',
     color: COLORS.textPrimary,
-    marginBottom: 4,
+  },
+  restTimerWarning: {
+    color: '#FF6B6B',
+  },
+  restTimerUnit: {
+    ...TYPOGRAPHY.caption,
+    color: COLORS.textSecondary,
+    fontSize: 11,
+    marginTop: -4,
+  },
+  progressRing: {
+    position: 'absolute',
+    width: 140,
+    height: 140,
+    borderRadius: 70,
+    borderWidth: 4,
+    borderColor: 'rgba(255,255,255,0.15)',
   },
   restMessage: {
     ...TYPOGRAPHY.body,
     color: COLORS.textSecondary,
     textAlign: 'center',
+    marginBottom: 12,
+  },
+  skipRestButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 16,
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+  },
+  skipRestText: {
+    ...TYPOGRAPHY.caption,
+    color: COLORS.textSecondary,
+    fontWeight: '600',
   },
   // Fixed bottom bar
   bottomBar: {

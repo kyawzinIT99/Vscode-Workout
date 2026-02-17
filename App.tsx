@@ -13,22 +13,25 @@ import { UserProvider } from './src/context/UserContext';
 import { WorkoutProvider } from './src/context/WorkoutContext';
 import { LanguageProvider } from './src/context/LanguageContext';
 import { ThemeProvider } from './src/context/ThemeContext';
+import { ErrorBoundary } from './src/components/ErrorBoundary';
 
 export default function App() {
   return (
     <GestureHandlerRootView style={styles.container}>
-      <SafeAreaProvider>
-        <ThemeProvider>
-          <LanguageProvider>
-            <UserProvider>
-              <WorkoutProvider>
-                <AppNavigator />
-                <StatusBar style="light" />
-              </WorkoutProvider>
-            </UserProvider>
-          </LanguageProvider>
-        </ThemeProvider>
-      </SafeAreaProvider>
+      <ErrorBoundary>
+        <SafeAreaProvider>
+          <ThemeProvider>
+            <LanguageProvider>
+              <UserProvider>
+                <WorkoutProvider>
+                  <AppNavigator />
+                  <StatusBar style="light" />
+                </WorkoutProvider>
+              </UserProvider>
+            </LanguageProvider>
+          </ThemeProvider>
+        </SafeAreaProvider>
+      </ErrorBoundary>
     </GestureHandlerRootView>
   );
 }

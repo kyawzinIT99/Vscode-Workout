@@ -3,8 +3,8 @@
  * User profile and settings
  */
 
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Alert, Image, Platform, StatusBar, ImageStyle } from 'react-native';
+import React, { useState, useEffect, useRef } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Alert, Image, Platform, StatusBar, ImageStyle, Keyboard, Animated } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import * as ImagePicker from 'expo-image-picker';
@@ -27,6 +27,10 @@ const ProfileScreen: React.FC = () => {
   const [editedEmail, setEditedEmail] = useState(user?.email || '');
   const [profilePhoto, setProfilePhoto] = useState<string | undefined>(user?.avatar);
   const [showLanguageMenu, setShowLanguageMenu] = useState(false);
+  const [keyboardVisible, setKeyboardVisible] = useState(false);
+  const keyboardHeight = useRef(new Animated.Value(0)).current;
+  const nameInputRef = useRef<TextInput>(null);
+  const emailInputRef = useRef<TextInput>(null);
 
   const languages = [
     { code: 'en' as Language, name: 'English', flag: '🇬🇧' },
@@ -43,8 +47,35 @@ const ProfileScreen: React.FC = () => {
     }
   }, [user]);
 
+  // Track keyboard height for toolbar positioning
+  useEffect(() => {
+    const showEvent = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
+    const hideEvent = Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide';
+
+    const showSub = Keyboard.addListener(showEvent, (e) => {
+      setKeyboardVisible(true);
+      Animated.timing(keyboardHeight, {
+        toValue: e.endCoordinates.height,
+        duration: Platform.OS === 'ios' ? 250 : 100,
+        useNativeDriver: false,
+      }).start();
+    });
+
+    const hideSub = Keyboard.addListener(hideEvent, () => {
+      Animated.timing(keyboardHeight, {
+        toValue: 0,
+        duration: Platform.OS === 'ios' ? 200 : 100,
+        useNativeDriver: false,
+      }).start(() => setKeyboardVisible(false));
+    });
+
+    return () => {
+      showSub.remove();
+      hideSub.remove();
+    };
+  }, [keyboardHeight]);
+
   const pickImage = async () => {
-    // Request media library permission on Android
     if (Platform.OS !== 'web') {
       const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
       if (status !== 'granted') {
@@ -72,7 +103,6 @@ const ProfileScreen: React.FC = () => {
 
   const handleSaveProfile = async () => {
     try {
-      // Update user context with new values
       await updateUser({
         name: editedName,
         email: editedEmail,
@@ -94,244 +124,304 @@ const ProfileScreen: React.FC = () => {
 
   return (
     <GradientBackground colors={GRADIENTS.ocean}>
-      <ScrollView
-        style={styles.container}
-        contentContainerStyle={styles.content}
-        showsVerticalScrollIndicator={false}
-        keyboardShouldPersistTaps="handled"
-      >
-        {/* Header */}
-        <View style={styles.header}>
-          <Text style={styles.title}>Profile</Text>
-          <TouchableOpacity onPress={() => setIsEditing(!isEditing)}>
-            <Ionicons
-              name={isEditing ? "close-circle" : "create"}
-              size={28}
-              color={COLORS.primary}
-            />
-          </TouchableOpacity>
-        </View>
+      <View style={{ flex: 1 }}>
+        <ScrollView
+          style={styles.container}
+          contentContainerStyle={styles.content}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+        >
+          {/* Header */}
+          <View style={styles.header}>
+            <Text style={styles.title}>Profile</Text>
+            <TouchableOpacity onPress={() => {
+              Keyboard.dismiss();
+              setIsEditing(!isEditing);
+            }}>
+              <Ionicons
+                name={isEditing ? "close-circle" : "create"}
+                size={28}
+                color={COLORS.primary}
+              />
+            </TouchableOpacity>
+          </View>
 
-        {/* Profile Photo */}
-        <View style={styles.photoSection}>
-          <TouchableOpacity onPress={pickImage} activeOpacity={0.8}>
-            <View style={styles.photoContainer}>
-              {profilePhoto ? (
-                <Image
-                  source={{ uri: profilePhoto }}
-                  style={styles.photoImage}
-                  resizeMode="cover"
+          {/* Profile Photo */}
+          <View style={styles.photoSection}>
+            <TouchableOpacity onPress={pickImage} activeOpacity={0.8}>
+              <View style={styles.photoContainer}>
+                {profilePhoto ? (
+                  <Image
+                    source={{ uri: profilePhoto }}
+                    style={styles.photoImage}
+                    resizeMode="cover"
+                  />
+                ) : (
+                  <LinearGradient
+                    colors={['#667EEA', '#764BA2']}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 1 }}
+                    style={styles.photoGradient}
+                  >
+                    <Ionicons name="person" size={64} color={COLORS.white} />
+                  </LinearGradient>
+                )}
+                <View style={styles.cameraIcon}>
+                  <Ionicons name="camera" size={20} color={COLORS.white} />
+                </View>
+              </View>
+            </TouchableOpacity>
+            <Text style={styles.photoLabel}>Tap to change photo</Text>
+            {isEditing && profilePhoto && (
+              <TouchableOpacity onPress={() => setProfilePhoto(undefined)} style={styles.removePhotoButton}>
+                <Text style={styles.removePhotoText}>Remove Photo</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+
+          {/* User Info Card */}
+          <GlassCard style={styles.card}>
+            <View style={styles.cardHeader}>
+              <Ionicons name="person-circle" size={24} color="#667EEA" />
+              <Text style={styles.cardTitle}>Personal Information</Text>
+            </View>
+
+            <View style={styles.infoItem}>
+              <Text style={styles.infoLabel}>Name</Text>
+              {isEditing ? (
+                <TextInput
+                  ref={nameInputRef}
+                  style={styles.input}
+                  value={editedName}
+                  onChangeText={setEditedName}
+                  placeholder="Enter your name"
+                  placeholderTextColor={COLORS.textTertiary}
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                  spellCheck={false}
+                  textContentType="none"
+                  autoComplete="off"
+                  returnKeyType="next"
+                  onSubmitEditing={() => emailInputRef.current?.focus()}
                 />
               ) : (
-                <LinearGradient
-                  colors={['#667EEA', '#764BA2']}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 1 }}
-                  style={styles.photoGradient}
-                >
-                  <Ionicons name="person" size={64} color={COLORS.white} />
-                </LinearGradient>
+                <Text style={styles.infoValue}>{editedName}</Text>
               )}
-              <View style={styles.cameraIcon}>
-                <Ionicons name="camera" size={20} color={COLORS.white} />
+            </View>
+
+            <View style={styles.divider} />
+
+            <View style={styles.infoItem}>
+              <Text style={styles.infoLabel}>Email</Text>
+              {isEditing ? (
+                <TextInput
+                  ref={emailInputRef}
+                  style={styles.input}
+                  value={editedEmail}
+                  onChangeText={setEditedEmail}
+                  placeholder="Enter your email"
+                  placeholderTextColor={COLORS.textTertiary}
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                  spellCheck={false}
+                  textContentType="none"
+                  autoComplete="off"
+                  returnKeyType="done"
+                  onSubmitEditing={() => Keyboard.dismiss()}
+                />
+              ) : (
+                <Text style={styles.infoValue}>{editedEmail || 'Not set'}</Text>
+              )}
+            </View>
+          </GlassCard>
+
+          {/* Stats Card */}
+          <GlassCard style={styles.card} gradient={['rgba(255, 107, 107, 0.19)', 'rgba(255, 165, 0, 0.19)']}>
+            <View style={styles.cardHeader}>
+              <Ionicons name="stats-chart" size={24} color="#FF6B6B" />
+              <Text style={styles.cardTitle}>Your Stats</Text>
+            </View>
+
+            <View style={styles.statsGrid}>
+              <View style={styles.statItem}>
+                <Text style={styles.statValue}>{user?.stats.totalWorkouts || 0}</Text>
+                <Text style={styles.statLabel}>Workouts</Text>
+              </View>
+              <View style={styles.statItem}>
+                <Text style={styles.statValue}>{user?.stats.currentStreak || 0}</Text>
+                <Text style={styles.statLabel}>Day Streak</Text>
+              </View>
+              <View style={styles.statItem}>
+                <Text style={styles.statValue}>{user?.stats.totalMinutes || 0}</Text>
+                <Text style={styles.statLabel}>Minutes</Text>
               </View>
             </View>
-          </TouchableOpacity>
-          <Text style={styles.photoLabel}>Tap to change photo</Text>
-          {isEditing && profilePhoto && (
-            <TouchableOpacity onPress={() => setProfilePhoto(undefined)} style={styles.removePhotoButton}>
-              <Text style={styles.removePhotoText}>Remove Photo</Text>
+          </GlassCard>
+
+          {/* Fitness Goals Card */}
+          <GlassCard style={styles.card} gradient={['rgba(17, 153, 142, 0.19)', 'rgba(56, 239, 125, 0.19)']}>
+            <View style={styles.cardHeader}>
+              <Ionicons name="trophy" size={24} color="#38EF7D" />
+              <Text style={styles.cardTitle}>Fitness Goals</Text>
+            </View>
+            <Text style={styles.cardText}>
+              {user?.goals?.join(' • ') || 'Build Strength • Improve Flexibility • Weight Loss'}
+            </Text>
+            {isEditing && (
+              <TouchableOpacity style={styles.editButton}>
+                <Text style={styles.editButtonText}>Edit Goals</Text>
+                <Ionicons name="chevron-forward" size={16} color={COLORS.primary} />
+              </TouchableOpacity>
+            )}
+          </GlassCard>
+
+          {/* Settings Card */}
+          <GlassCard style={styles.card}>
+            <View style={styles.cardHeader}>
+              <Ionicons name="settings" size={24} color="#764BA2" />
+              <Text style={styles.cardTitle}>Preferences</Text>
+            </View>
+
+            <TouchableOpacity style={styles.settingItem} onPress={() => navigation.navigate('Settings' as never)}>
+              <View style={styles.settingLeft}>
+                <Ionicons name="notifications" size={20} color={COLORS.textSecondary} />
+                <Text style={styles.settingText}>Notifications</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={20} color={COLORS.textTertiary} />
             </TouchableOpacity>
-          )}
-        </View>
 
-        {/* User Info Card */}
-        <GlassCard style={styles.card}>
-          <View style={styles.cardHeader}>
-            <Ionicons name="person-circle" size={24} color="#667EEA" />
-            <Text style={styles.cardTitle}>Personal Information</Text>
-          </View>
+            <View style={styles.divider} />
 
-          <View style={styles.infoItem}>
-            <Text style={styles.infoLabel}>Name</Text>
-            {isEditing ? (
-              <TextInput
-                style={styles.input}
-                value={editedName}
-                onChangeText={setEditedName}
-                placeholder="Enter your name"
-                placeholderTextColor={COLORS.textTertiary}
+            <TouchableOpacity style={styles.settingItem} onPress={() => navigation.navigate('Settings' as never)}>
+              <View style={styles.settingLeft}>
+                <Ionicons name="color-palette" size={20} color={COLORS.textSecondary} />
+                <Text style={styles.settingText}>Theme</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={20} color={COLORS.textTertiary} />
+            </TouchableOpacity>
+
+            <View style={styles.divider} />
+
+            <TouchableOpacity
+              style={styles.settingItem}
+              onPress={() => {
+                Keyboard.dismiss();
+                setShowLanguageMenu(!showLanguageMenu);
+              }}
+            >
+              <View style={styles.settingLeft}>
+                <Ionicons name="language" size={20} color={COLORS.textSecondary} />
+                <Text style={styles.languageFlag}>
+                  {languages.find(l => l.code === language)?.flag}
+                </Text>
+                <Text style={styles.settingText}>
+                  {languages.find(l => l.code === language)?.name}
+                </Text>
+              </View>
+              <Ionicons
+                name={showLanguageMenu ? 'chevron-up' : 'chevron-down'}
+                size={20}
+                color={COLORS.textTertiary}
               />
-            ) : (
-              <Text style={styles.infoValue}>{editedName}</Text>
+            </TouchableOpacity>
+
+            {showLanguageMenu && (
+              <View style={styles.languageMenu}>
+                {languages.map((lang) => (
+                  <TouchableOpacity
+                    key={lang.code}
+                    style={[
+                      styles.languageOption,
+                      language === lang.code && styles.languageOptionActive,
+                    ]}
+                    onPress={() => handleLanguageChange(lang.code)}
+                  >
+                    <Text style={styles.languageFlag}>{lang.flag}</Text>
+                    <Text style={styles.languageOptionText}>{lang.name}</Text>
+                    {language === lang.code && (
+                      <Ionicons name="checkmark-circle" size={20} color={COLORS.primary} />
+                    )}
+                  </TouchableOpacity>
+                ))}
+              </View>
             )}
-          </View>
+          </GlassCard>
 
-          <View style={styles.divider} />
-
-          <View style={styles.infoItem}>
-            <Text style={styles.infoLabel}>Email</Text>
-            {isEditing ? (
-              <TextInput
-                style={styles.input}
-                value={editedEmail}
-                onChangeText={setEditedEmail}
-                placeholder="Enter your email"
-                placeholderTextColor={COLORS.textTertiary}
-                keyboardType="email-address"
-              />
-            ) : (
-              <Text style={styles.infoValue}>{editedEmail || 'Not set'}</Text>
-            )}
-          </View>
-        </GlassCard>
-
-        {/* Stats Card */}
-        <GlassCard style={styles.card} gradient={['rgba(255, 107, 107, 0.19)', 'rgba(255, 165, 0, 0.19)']}>
-          <View style={styles.cardHeader}>
-            <Ionicons name="stats-chart" size={24} color="#FF6B6B" />
-            <Text style={styles.cardTitle}>Your Stats</Text>
-          </View>
-
-          <View style={styles.statsGrid}>
-            <View style={styles.statItem}>
-              <Text style={styles.statValue}>{user?.stats.totalWorkouts || 0}</Text>
-              <Text style={styles.statLabel}>Workouts</Text>
+          {/* Developer Info Card */}
+          <GlassCard style={styles.card} gradient={['rgba(74, 0, 224, 0.19)', 'rgba(142, 45, 226, 0.19)']}>
+            <View style={styles.cardHeader}>
+              <Ionicons name="code-slash" size={24} color="#8E2DE2" />
+              <Text style={styles.cardTitle}>Developer</Text>
             </View>
-            <View style={styles.statItem}>
-              <Text style={styles.statValue}>{user?.stats.currentStreak || 0}</Text>
-              <Text style={styles.statLabel}>Day Streak</Text>
-            </View>
-            <View style={styles.statItem}>
-              <Text style={styles.statValue}>{user?.stats.totalMinutes || 0}</Text>
-              <Text style={styles.statLabel}>Minutes</Text>
-            </View>
-          </View>
-        </GlassCard>
 
-        {/* Fitness Goals Card */}
-        <GlassCard style={styles.card} gradient={['rgba(17, 153, 142, 0.19)', 'rgba(56, 239, 125, 0.19)']}>
-          <View style={styles.cardHeader}>
-            <Ionicons name="trophy" size={24} color="#38EF7D" />
-            <Text style={styles.cardTitle}>Fitness Goals</Text>
-          </View>
-          <Text style={styles.cardText}>
-            {user?.goals?.join(' • ') || 'Build Strength • Improve Flexibility • Weight Loss'}
-          </Text>
+            <View style={styles.developerInfo}>
+              <View style={styles.developerItem}>
+                <Ionicons name="person" size={18} color={COLORS.textSecondary} />
+                <Text style={styles.developerText}>Mr. Kyaw Zin Tun</Text>
+              </View>
+              <View style={styles.developerItem}>
+                <Ionicons name="location" size={18} color={COLORS.textSecondary} />
+                <Text style={styles.developerText}>Thailand</Text>
+              </View>
+              <View style={styles.developerItem}>
+                <Ionicons name="mail" size={18} color={COLORS.textSecondary} />
+                <Text style={styles.developerText}>itsolutions.mm@gmail.com</Text>
+              </View>
+            </View>
+          </GlassCard>
+
+          {/* Save Button */}
           {isEditing && (
-            <TouchableOpacity style={styles.editButton}>
-              <Text style={styles.editButtonText}>Edit Goals</Text>
-              <Ionicons name="chevron-forward" size={16} color={COLORS.primary} />
-            </TouchableOpacity>
-          )}
-        </GlassCard>
-
-        {/* Settings Card */}
-        <GlassCard style={styles.card}>
-          <View style={styles.cardHeader}>
-            <Ionicons name="settings" size={24} color="#764BA2" />
-            <Text style={styles.cardTitle}>Preferences</Text>
-          </View>
-
-          <TouchableOpacity style={styles.settingItem} onPress={() => navigation.navigate('Settings' as never)}>
-            <View style={styles.settingLeft}>
-              <Ionicons name="notifications" size={20} color={COLORS.textSecondary} />
-              <Text style={styles.settingText}>Notifications</Text>
-            </View>
-            <Ionicons name="chevron-forward" size={20} color={COLORS.textTertiary} />
-          </TouchableOpacity>
-
-          <View style={styles.divider} />
-
-          <TouchableOpacity style={styles.settingItem} onPress={() => navigation.navigate('Settings' as never)}>
-            <View style={styles.settingLeft}>
-              <Ionicons name="color-palette" size={20} color={COLORS.textSecondary} />
-              <Text style={styles.settingText}>Theme</Text>
-            </View>
-            <Ionicons name="chevron-forward" size={20} color={COLORS.textTertiary} />
-          </TouchableOpacity>
-
-          <View style={styles.divider} />
-
-          <TouchableOpacity
-            style={styles.settingItem}
-            onPress={() => setShowLanguageMenu(!showLanguageMenu)}
-          >
-            <View style={styles.settingLeft}>
-              <Ionicons name="language" size={20} color={COLORS.textSecondary} />
-              <Text style={styles.languageFlag}>
-                {languages.find(l => l.code === language)?.flag}
-              </Text>
-              <Text style={styles.settingText}>
-                {languages.find(l => l.code === language)?.name}
-              </Text>
-            </View>
-            <Ionicons
-              name={showLanguageMenu ? 'chevron-up' : 'chevron-down'}
-              size={20}
-              color={COLORS.textTertiary}
+            <GlassButton
+              title="Save Changes"
+              onPress={handleSaveProfile}
+              size="large"
+              style={styles.saveButton}
+              icon={<Ionicons name="checkmark-circle" size={24} color={COLORS.white} />}
             />
-          </TouchableOpacity>
-
-          {showLanguageMenu && (
-            <View style={styles.languageMenu}>
-              {languages.map((lang) => (
-                <TouchableOpacity
-                  key={lang.code}
-                  style={[
-                    styles.languageOption,
-                    language === lang.code && styles.languageOptionActive,
-                  ]}
-                  onPress={() => handleLanguageChange(lang.code)}
-                >
-                  <Text style={styles.languageFlag}>{lang.flag}</Text>
-                  <Text style={styles.languageOptionText}>{lang.name}</Text>
-                  {language === lang.code && (
-                    <Ionicons name="checkmark-circle" size={20} color={COLORS.primary} />
-                  )}
-                </TouchableOpacity>
-              ))}
-            </View>
           )}
-        </GlassCard>
 
-        {/* Developer Info Card */}
-        <GlassCard style={styles.card} gradient={['rgba(74, 0, 224, 0.19)', 'rgba(142, 45, 226, 0.19)']}>
-          <View style={styles.cardHeader}>
-            <Ionicons name="code-slash" size={24} color="#8E2DE2" />
-            <Text style={styles.cardTitle}>Developer</Text>
-          </View>
+          {/* App Version */}
+          <Text style={styles.version}>Version 1.0.0</Text>
+        </ScrollView>
 
-          <View style={styles.developerInfo}>
-            <View style={styles.developerItem}>
-              <Ionicons name="person" size={18} color={COLORS.textSecondary} />
-              <Text style={styles.developerText}>Mr. Kyaw Zin Tun</Text>
-            </View>
-            <View style={styles.developerItem}>
-              <Ionicons name="location" size={18} color={COLORS.textSecondary} />
-              <Text style={styles.developerText}>Thailand</Text>
-            </View>
-            <View style={styles.developerItem}>
-              <Ionicons name="mail" size={18} color={COLORS.textSecondary} />
-              <Text style={styles.developerText}>itsolutions.mm@gmail.com</Text>
-            </View>
-          </View>
-        </GlassCard>
+        {/* Floating Keyboard Toolbar - absolutely positioned above keyboard */}
+        {keyboardVisible && isEditing && (
+          <Animated.View
+            style={[
+              styles.keyboardToolbar,
+              { bottom: keyboardHeight },
+            ]}
+          >
+            <TouchableOpacity
+              style={styles.toolbarButton}
+              onPress={() => nameInputRef.current?.focus()}
+            >
+              <Ionicons name="person-outline" size={18} color={COLORS.textSecondary} />
+              <Text style={styles.toolbarLabel}>Name</Text>
+            </TouchableOpacity>
 
-        {/* Save Button */}
-        {isEditing && (
-          <GlassButton
-            title="Save Changes"
-            onPress={handleSaveProfile}
-            size="large"
-            style={styles.saveButton}
-            icon={<Ionicons name="checkmark-circle" size={24} color={COLORS.white} />}
-          />
+            <TouchableOpacity
+              style={styles.toolbarButton}
+              onPress={() => emailInputRef.current?.focus()}
+            >
+              <Ionicons name="mail-outline" size={18} color={COLORS.textSecondary} />
+              <Text style={styles.toolbarLabel}>Email</Text>
+            </TouchableOpacity>
+
+            <View style={{ flex: 1 }} />
+
+            <TouchableOpacity
+              style={styles.toolbarDoneButton}
+              onPress={() => Keyboard.dismiss()}
+            >
+              <Ionicons name="checkmark-circle" size={20} color={COLORS.primary} />
+              <Text style={styles.toolbarDoneText}>Done</Text>
+            </TouchableOpacity>
+          </Animated.View>
         )}
-
-        {/* App Version */}
-        <Text style={styles.version}>Version 1.0.0</Text>
-      </ScrollView>
+      </View>
     </GradientBackground>
   );
 };
@@ -553,6 +643,47 @@ const styles = StyleSheet.create({
     color: COLORS.textTertiary,
     textAlign: 'center',
     marginTop: 24,
+  },
+  keyboardToolbar: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(30, 30, 50, 0.98)',
+    borderTopWidth: 1,
+    borderTopColor: COLORS.white + '20',
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    gap: 8,
+  },
+  toolbarButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 8,
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    gap: 6,
+  },
+  toolbarLabel: {
+    ...TYPOGRAPHY.caption,
+    color: COLORS.textSecondary,
+    fontSize: 13,
+  },
+  toolbarDoneButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 8,
+    backgroundColor: 'rgba(102, 126, 234, 0.2)',
+    gap: 6,
+  },
+  toolbarDoneText: {
+    ...TYPOGRAPHY.body,
+    color: COLORS.primary,
+    fontWeight: '600',
   },
 });
 

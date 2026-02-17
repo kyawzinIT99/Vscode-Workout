@@ -232,6 +232,42 @@ export interface Achievement {
 }
 
 // ============================================================================
+// BODY MEASUREMENT TYPES
+// ============================================================================
+
+export interface BodyMeasurement {
+  id: string;
+  date: Date;
+  weight?: number;
+  bodyFat?: number;
+  chest?: number;
+  waist?: number;
+  hips?: number;
+  arms?: number;
+  thighs?: number;
+  notes?: string;
+  photoUri?: string;
+}
+
+// ============================================================================
+// WATER INTAKE TYPES
+// ============================================================================
+
+export interface WaterIntake {
+  id: string;
+  date: string; // YYYY-MM-DD
+  amount: number; // in ml
+  timestamp: number; // epoch ms
+}
+
+export interface WaterDailyLog {
+  date: string; // YYYY-MM-DD
+  entries: WaterIntake[];
+  totalMl: number;
+  goalMl: number;
+}
+
+// ============================================================================
 // YOUTUBE VIDEO TYPES
 // ============================================================================
 

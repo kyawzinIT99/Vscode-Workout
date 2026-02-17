@@ -4,7 +4,7 @@
  */
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { User, WorkoutSession, UserStats } from '../types/workout.types';
+import { User, WorkoutSession, UserStats, BodyMeasurement, WaterIntake, WaterDailyLog } from '../types/workout.types';
 
 // Storage Keys
 const STORAGE_KEYS = {
@@ -14,6 +14,9 @@ const STORAGE_KEYS = {
   ACHIEVEMENTS: '@fitglass_achievements',
   PREFERENCES: '@fitglass_preferences',
   ONBOARDING_COMPLETE: '@fitglass_onboarding_complete',
+  BODY_MEASUREMENTS: '@fitglass_body_measurements',
+  WATER_INTAKE: '@fitglass_water_intake',
+  WATER_GOAL: '@fitglass_water_goal',
 };
 
 // ============================================================================
@@ -139,6 +142,124 @@ export const updateUserStats = async (updates: Partial<UserStats>): Promise<void
 };
 
 // ============================================================================
+// BODY MEASUREMENTS
+// ============================================================================
+
+export const saveMeasurement = async (measurement: BodyMeasurement): Promise<void> => {
+  try {
+    const measurements = await loadMeasurements();
+    const updated = [measurement, ...measurements];
+    await AsyncStorage.setItem(STORAGE_KEYS.BODY_MEASUREMENTS, JSON.stringify(updated));
+  } catch (error) {
+    console.error('Error saving measurement:', error);
+    throw error;
+  }
+};
+
+export const loadMeasurements = async (): Promise<BodyMeasurement[]> => {
+  try {
+    const jsonValue = await AsyncStorage.getItem(STORAGE_KEYS.BODY_MEASUREMENTS);
+    return jsonValue != null ? JSON.parse(jsonValue) : [];
+  } catch (error) {
+    console.error('Error loading measurements:', error);
+    return [];
+  }
+};
+
+export const deleteMeasurement = async (measurementId: string): Promise<void> => {
+  try {
+    const measurements = await loadMeasurements();
+    const updated = measurements.filter((m) => m.id !== measurementId);
+    await AsyncStorage.setItem(STORAGE_KEYS.BODY_MEASUREMENTS, JSON.stringify(updated));
+  } catch (error) {
+    console.error('Error deleting measurement:', error);
+    throw error;
+  }
+};
+
+// ============================================================================
+// WATER INTAKE
+// ============================================================================
+
+const getTodayDate = (): string => {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+};
+
+const loadAllWaterEntries = async (): Promise<WaterIntake[]> => {
+  try {
+    const jsonValue = await AsyncStorage.getItem(STORAGE_KEYS.WATER_INTAKE);
+    return jsonValue != null ? JSON.parse(jsonValue) : [];
+  } catch (error) {
+    console.error('Error loading water entries:', error);
+    return [];
+  }
+};
+
+const saveAllWaterEntries = async (entries: WaterIntake[]): Promise<void> => {
+  await AsyncStorage.setItem(STORAGE_KEYS.WATER_INTAKE, JSON.stringify(entries));
+};
+
+export const addWaterIntake = async (amount: number): Promise<WaterDailyLog> => {
+  const entries = await loadAllWaterEntries();
+  const today = getTodayDate();
+  const entry: WaterIntake = {
+    id: `water_${Date.now()}`,
+    date: today,
+    amount,
+    timestamp: Date.now(),
+  };
+  entries.unshift(entry);
+  await saveAllWaterEntries(entries);
+  return loadTodayWater();
+};
+
+export const loadTodayWater = async (): Promise<WaterDailyLog> => {
+  const entries = await loadAllWaterEntries();
+  const today = getTodayDate();
+  const goalMl = await getWaterGoal();
+  const todayEntries = entries.filter(e => e.date === today);
+  const totalMl = todayEntries.reduce((sum, e) => sum + e.amount, 0);
+  return { date: today, entries: todayEntries, totalMl, goalMl };
+};
+
+export const loadWaterHistory = async (days: number = 7): Promise<WaterDailyLog[]> => {
+  const entries = await loadAllWaterEntries();
+  const goalMl = await getWaterGoal();
+  const logs: WaterDailyLog[] = [];
+
+  for (let i = 0; i < days; i++) {
+    const d = new Date();
+    d.setDate(d.getDate() - i);
+    const dateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    const dayEntries = entries.filter(e => e.date === dateStr);
+    const totalMl = dayEntries.reduce((sum, e) => sum + e.amount, 0);
+    logs.push({ date: dateStr, entries: dayEntries, totalMl, goalMl });
+  }
+
+  return logs;
+};
+
+export const deleteWaterEntry = async (entryId: string): Promise<void> => {
+  const entries = await loadAllWaterEntries();
+  const updated = entries.filter(e => e.id !== entryId);
+  await saveAllWaterEntries(updated);
+};
+
+export const setWaterGoal = async (goalMl: number): Promise<void> => {
+  await AsyncStorage.setItem(STORAGE_KEYS.WATER_GOAL, JSON.stringify(goalMl));
+};
+
+export const getWaterGoal = async (): Promise<number> => {
+  try {
+    const value = await AsyncStorage.getItem(STORAGE_KEYS.WATER_GOAL);
+    return value != null ? JSON.parse(value) : 2000;
+  } catch {
+    return 2000;
+  }
+};
+
+// ============================================================================
 // ONBOARDING
 // ============================================================================
 
@@ -173,6 +294,9 @@ export const clearAllData = async (): Promise<void> => {
       STORAGE_KEYS.USER_STATS,
       STORAGE_KEYS.ACHIEVEMENTS,
       STORAGE_KEYS.PREFERENCES,
+      STORAGE_KEYS.BODY_MEASUREMENTS,
+      STORAGE_KEYS.WATER_INTAKE,
+      STORAGE_KEYS.WATER_GOAL,
     ]);
   } catch (error) {
     console.error('Error clearing all data:', error);
