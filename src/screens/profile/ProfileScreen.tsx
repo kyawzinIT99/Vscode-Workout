@@ -4,7 +4,7 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Alert, Image, Platform, StatusBar } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Alert, Image, Platform, StatusBar, ImageStyle } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import * as ImagePicker from 'expo-image-picker';
@@ -44,16 +44,29 @@ const ProfileScreen: React.FC = () => {
   }, [user]);
 
   const pickImage = async () => {
+    // Request media library permission on Android
+    if (Platform.OS !== 'web') {
+      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert(
+          'Permission Required',
+          'Please allow access to your photo library to change your profile photo.',
+          [{ text: 'OK' }]
+        );
+        return;
+      }
+    }
+
     const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaType.Images,
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsEditing: true,
       aspect: [1, 1],
       quality: 0.8,
     });
 
-    if (!result.canceled) {
+    if (!result.canceled && result.assets[0]) {
       setProfilePhoto(result.assets[0].uri);
-      Alert.alert('Success', 'Profile photo updated! Click Save Changes to apply.');
+      Alert.alert('Success', 'Profile photo updated! Tap Save Changes to apply.');
     }
   };
 
@@ -104,19 +117,11 @@ const ProfileScreen: React.FC = () => {
           <TouchableOpacity onPress={pickImage} activeOpacity={0.8}>
             <View style={styles.photoContainer}>
               {profilePhoto ? (
-                <View style={styles.photoGradient}>
-                  <View style={styles.photoImageContainer}>
-                    {/* In production, use: <Image source={{ uri: profilePhoto }} style={styles.photoImage} /> */}
-                    <LinearGradient
-                      colors={['#667EEA', '#764BA2']}
-                      start={{ x: 0, y: 0 }}
-                      end={{ x: 1, y: 1 }}
-                      style={styles.photoGradient}
-                    >
-                      <Ionicons name="person" size={64} color={COLORS.white} />
-                    </LinearGradient>
-                  </View>
-                </View>
+                <Image
+                  source={{ uri: profilePhoto }}
+                  style={styles.photoImage}
+                  resizeMode="cover"
+                />
               ) : (
                 <LinearGradient
                   colors={['#667EEA', '#764BA2']}
@@ -392,10 +397,12 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   photoImage: {
-    width: '100%',
-    height: '100%',
+    width: 120,
+    height: 120,
     borderRadius: 60,
-  },
+    borderWidth: 4,
+    borderColor: COLORS.white + '30',
+  } as ImageStyle,
   removePhotoButton: {
     marginTop: 8,
     paddingHorizontal: 16,
