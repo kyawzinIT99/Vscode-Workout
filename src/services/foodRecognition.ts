@@ -4,9 +4,11 @@
  *
  * Setup Instructions:
  * 1. Get API key from: https://platform.openai.com/api-keys
- * 2. Replace 'YOUR_OPENAI_API_KEY_HERE' below with your actual key
- * 3. Or use environment variables in production
+ * 2. Add EXPO_PUBLIC_OPENAI_API_KEY=your_key to .env.local
+ * 3. Never hardcode keys in source code
  */
+
+import * as FileSystem from 'expo-file-system';
 
 // 🔑 OPENAI API KEY — set via EAS Secrets or app.config.js
 // In production: add EXPO_PUBLIC_OPENAI_API_KEY to your EAS secret store
@@ -139,6 +141,19 @@ export const recognizeFood = async (imageUri: string): Promise<RecognitionResult
   }
 
   try {
+    // Convert local file:// URI to base64 so OpenAI can read it
+    // (OpenAI cannot access local device file paths directly)
+    let imageData: string;
+    if (imageUri.startsWith('file://') || imageUri.startsWith('/')) {
+      const base64 = await FileSystem.readAsStringAsync(imageUri, {
+        encoding: FileSystem.EncodingType.Base64,
+      });
+      imageData = `data:image/jpeg;base64,${base64}`;
+    } else {
+      // Already a remote https:// URL
+      imageData = imageUri;
+    }
+
     // Call OpenAI Vision API
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -147,25 +162,26 @@ export const recognizeFood = async (imageUri: string): Promise<RecognitionResult
         'Authorization': `Bearer ${OPENAI_API_KEY}`,
       },
       body: JSON.stringify({
-        model: 'gpt-4-vision-preview',
+        model: 'gpt-4o-mini',
         messages: [
           {
             role: 'user',
             content: [
               {
                 type: 'text',
-                text: 'Analyze this food image and return a JSON array of detected food items. For each item include: name, estimated calories, protein (g), carbs (g), fat (g), serving size, and confidence (0-1). Be specific about portions. Format: {"foods": [{"name": "...", "calories": 0, "protein": 0, "carbs": 0, "fat": 0, "serving": "...", "confidence": 0.95}]}'
+                text: 'Analyze this food image and return a JSON object of detected food items. For each item include: name, estimated calories, protein (g), carbs (g), fat (g), serving size, and confidence (0-1). Be specific about portions. Format: {"foods": [{"name": "...", "calories": 0, "protein": 0, "carbs": 0, "fat": 0, "serving": "...", "confidence": 0.95}]}'
               },
               {
                 type: 'image_url',
                 image_url: {
-                  url: imageUri
+                  url: imageData,
+                  detail: 'low',
                 }
               }
             ]
           }
         ],
-        max_tokens: 500
+        max_tokens: 600
       })
     });
 
