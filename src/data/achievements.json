@@ -1,0 +1,202 @@
+[
+  {
+    "id": "ach_first_workout",
+    "name": "First Step",
+    "description": "Complete your first workout",
+    "icon": "🎯",
+    "category": "workouts",
+    "requirement": 1,
+    "gradientColors": ["#11998E", "#38EF7D"],
+    "rarity": "common"
+  },
+  {
+    "id": "ach_week_streak",
+    "name": "Week Warrior",
+    "description": "Maintain a 7-day workout streak",
+    "icon": "🔥",
+    "category": "streak",
+    "requirement": 7,
+    "gradientColors": ["#F83600", "#FE8C00"],
+    "rarity": "rare"
+  },
+  {
+    "id": "ach_month_streak",
+    "name": "Monthly Master",
+    "description": "Maintain a 30-day workout streak",
+    "icon": "⚡",
+    "category": "streak",
+    "requirement": 30,
+    "gradientColors": ["#667EEA", "#764BA2"],
+    "rarity": "epic"
+  },
+  {
+    "id": "ach_hundred_streak",
+    "name": "Century Champion",
+    "description": "Reach 100-day workout streak",
+    "icon": "👑",
+    "category": "streak",
+    "requirement": 100,
+    "gradientColors": ["#4A00E0", "#8E2DE2", "#DA22FF"],
+    "rarity": "legendary"
+  },
+  {
+    "id": "ach_10_workouts",
+    "name": "Getting Started",
+    "description": "Complete 10 workouts",
+    "icon": "💪",
+    "category": "workouts",
+    "requirement": 10,
+    "gradientColors": ["#FF6B6B", "#FF8E53"],
+    "rarity": "common"
+  },
+  {
+    "id": "ach_50_workouts",
+    "name": "Dedicated Athlete",
+    "description": "Complete 50 workouts",
+    "icon": "🏅",
+    "category": "workouts",
+    "requirement": 50,
+    "gradientColors": ["#FA709A", "#FEE140"],
+    "rarity": "rare"
+  },
+  {
+    "id": "ach_100_workouts",
+    "name": "Fitness Fanatic",
+    "description": "Complete 100 workouts",
+    "icon": "🏆",
+    "category": "workouts",
+    "requirement": 100,
+    "gradientColors": ["#F83600", "#FFDD00"],
+    "rarity": "epic"
+  },
+  {
+    "id": "ach_500_workouts",
+    "name": "Elite Performer",
+    "description": "Complete 500 workouts",
+    "icon": "⭐",
+    "category": "workouts",
+    "requirement": 500,
+    "gradientColors": ["#4A00E0", "#DA22FF"],
+    "rarity": "legendary"
+  },
+  {
+    "id": "ach_early_bird",
+    "name": "Early Bird",
+    "description": "Complete 10 morning workouts (before 9 AM)",
+    "icon": "🌅",
+    "category": "milestones",
+    "requirement": 10,
+    "gradientColors": ["#FA709A", "#FFC371"],
+    "rarity": "rare"
+  },
+  {
+    "id": "ach_night_owl",
+    "name": "Night Owl",
+    "description": "Complete 10 evening workouts (after 8 PM)",
+    "icon": "🌙",
+    "category": "milestones",
+    "requirement": 10,
+    "gradientColors": ["#000428", "#004E92"],
+    "rarity": "rare"
+  },
+  {
+    "id": "ach_cardio_king",
+    "name": "Cardio King",
+    "description": "Complete 20 cardio workouts",
+    "icon": "❤️",
+    "category": "exercises",
+    "requirement": 20,
+    "gradientColors": ["#667EEA", "#F093FB"],
+    "rarity": "rare"
+  },
+  {
+    "id": "ach_strength_master",
+    "name": "Strength Master",
+    "description": "Complete 30 strength workouts",
+    "icon": "💎",
+    "category": "exercises",
+    "requirement": 30,
+    "gradientColors": ["#FF6B6B", "#FFA500"],
+    "rarity": "epic"
+  },
+  {
+    "id": "ach_flexibility_guru",
+    "name": "Flexibility Guru",
+    "description": "Complete 15 flexibility/yoga workouts",
+    "icon": "🧘",
+    "category": "exercises",
+    "requirement": 15,
+    "gradientColors": ["#11998E", "#78FFD6"],
+    "rarity": "rare"
+  },
+  {
+    "id": "ach_time_master",
+    "name": "Time Master",
+    "description": "Accumulate 1000 minutes of exercise",
+    "icon": "⏱️",
+    "category": "milestones",
+    "requirement": 1000,
+    "gradientColors": ["#764BA2", "#F093FB"],
+    "rarity": "epic"
+  },
+  {
+    "id": "ach_calorie_crusher",
+    "name": "Calorie Crusher",
+    "description": "Burn 5000 total calories",
+    "icon": "🔥",
+    "category": "milestones",
+    "requirement": 5000,
+    "gradientColors": ["#F83600", "#FFDD00"],
+    "rarity": "epic"
+  },
+  {
+    "id": "ach_consistency_champion",
+    "name": "Consistency Champion",
+    "description": "Work out 4+ times per week for 4 weeks",
+    "icon": "📅",
+    "category": "streak",
+    "requirement": 16,
+    "gradientColors": ["#667EEA", "#8E2DE2"],
+    "rarity": "rare"
+  },
+  {
+    "id": "ach_weekend_warrior",
+    "name": "Weekend Warrior",
+    "description": "Complete 10 weekend workouts",
+    "icon": "🎉",
+    "category": "milestones",
+    "requirement": 10,
+    "gradientColors": ["#FA709A", "#FEE140"],
+    "rarity": "common"
+  },
+  {
+    "id": "ach_variety_seeker",
+    "name": "Variety Seeker",
+    "description": "Try all workout categories",
+    "icon": "🌈",
+    "category": "milestones",
+    "requirement": 5,
+    "gradientColors": ["#FF6B6B", "#667EEA", "#11998E"],
+    "rarity": "rare"
+  },
+  {
+    "id": "ach_personal_best",
+    "name": "Personal Best",
+    "description": "Set your first personal record",
+    "icon": "📈",
+    "category": "milestones",
+    "requirement": 1,
+    "gradientColors": ["#38EF7D", "#78FFD6"],
+    "rarity": "common"
+  },
+  {
+    "id": "ach_marathon_session",
+    "name": "Marathon Session",
+    "description": "Complete a workout longer than 60 minutes",
+    "icon": "🏃",
+    "category": "milestones",
+    "requirement": 1,
+    "gradientColors": ["#667EEA", "#F093FB"],
+    "rarity": "rare"
+  }
+]

@@ -1,0 +1,373 @@
+[
+  {
+    "id": "ex_pushup_001",
+    "name": "Standard Push-ups",
+    "description": "Classic bodyweight chest and tricep builder",
+    "category": "strength",
+    "muscleGroups": ["chest", "triceps", "shoulders", "abs"],
+    "equipment": ["none"],
+    "difficulty": "beginner",
+    "youtubeUrl": "https://www.youtube.com/watch?v=IODxDxX7oi4",
+    "videoId": "IODxDxX7oi4",
+    "thumbnailUrl": "https://img.youtube.com/vi/IODxDxX7oi4/maxresdefault.jpg",
+    "videoDuration": 180,
+    "defaultSets": 3,
+    "defaultReps": 15,
+    "restTime": 60,
+    "caloriesPerRep": 0.5,
+    "instructions": [
+      "Start in plank position with hands shoulder-width apart",
+      "Lower your body until chest nearly touches the floor",
+      "Keep elbows at 45-degree angle",
+      "Push back up to starting position"
+    ],
+    "tips": [
+      "Keep core engaged throughout",
+      "Maintain straight line from head to heels",
+      "Breathe out on the way up"
+    ],
+    "commonMistakes": [
+      "Sagging hips",
+      "Flaring elbows too wide",
+      "Not going low enough"
+    ],
+    "tags": ["bodyweight", "beginner-friendly", "no-equipment", "home-workout"],
+    "alternativeExercises": ["ex_knee_pushup_002", "ex_incline_pushup_003"],
+    "isPopular": true,
+    "difficulty_score": 3
+  },
+  {
+    "id": "ex_squat_001",
+    "name": "Bodyweight Squats",
+    "description": "Fundamental lower body exercise",
+    "category": "strength",
+    "muscleGroups": ["quads", "glutes", "hamstrings", "calves"],
+    "equipment": ["none"],
+    "difficulty": "beginner",
+    "youtubeUrl": "https://www.youtube.com/watch?v=aclHkVaku9U",
+    "videoId": "aclHkVaku9U",
+    "thumbnailUrl": "https://img.youtube.com/vi/aclHkVaku9U/maxresdefault.jpg",
+    "videoDuration": 240,
+    "defaultSets": 3,
+    "defaultReps": 20,
+    "restTime": 60,
+    "caloriesPerRep": 0.4,
+    "instructions": [
+      "Stand with feet shoulder-width apart",
+      "Lower down as if sitting in a chair",
+      "Keep chest up and knees over toes",
+      "Drive through heels to stand"
+    ],
+    "tips": [
+      "Keep weight in heels",
+      "Don't let knees cave inward",
+      "Go as low as comfortable"
+    ],
+    "commonMistakes": [
+      "Knees extending past toes",
+      "Rounding lower back",
+      "Not going deep enough"
+    ],
+    "tags": ["bodyweight", "beginner-friendly", "no-equipment", "legs"],
+    "alternativeExercises": ["ex_goblet_squat_002"],
+    "isPopular": true,
+    "difficulty_score": 2
+  },
+  {
+    "id": "ex_plank_001",
+    "name": "Plank Hold",
+    "description": "Core stability exercise",
+    "category": "strength",
+    "muscleGroups": ["abs", "obliques", "lower_back", "shoulders"],
+    "equipment": ["yoga_mat"],
+    "difficulty": "beginner",
+    "youtubeUrl": "https://www.youtube.com/watch?v=pSHjTRCQxIw",
+    "videoId": "pSHjTRCQxIw",
+    "thumbnailUrl": "https://img.youtube.com/vi/pSHjTRCQxIw/maxresdefault.jpg",
+    "videoDuration": 200,
+    "defaultSets": 3,
+    "defaultDuration": 30,
+    "restTime": 45,
+    "caloriesPerRep": 5,
+    "instructions": [
+      "Start in push-up position",
+      "Lower onto forearms",
+      "Keep body in straight line",
+      "Hold position without sagging"
+    ],
+    "tips": [
+      "Squeeze glutes to protect lower back",
+      "Don't hold your breath",
+      "Focus on a spot on the ground"
+    ],
+    "commonMistakes": [
+      "Hips too high or too low",
+      "Holding breath",
+      "Looking up instead of down"
+    ],
+    "tags": ["core", "isometric", "no-equipment"],
+    "alternativeExercises": ["ex_side_plank_001"],
+    "isPopular": true,
+    "difficulty_score": 3
+  },
+  {
+    "id": "ex_burpee_001",
+    "name": "Burpees",
+    "description": "Full-body explosive cardio exercise",
+    "category": "cardio",
+    "muscleGroups": ["full_body", "cardio"],
+    "equipment": ["none"],
+    "difficulty": "intermediate",
+    "youtubeUrl": "https://www.youtube.com/watch?v=dZgVxmf6jkA",
+    "videoId": "dZgVxmf6jkA",
+    "thumbnailUrl": "https://img.youtube.com/vi/dZgVxmf6jkA/maxresdefault.jpg",
+    "videoDuration": 180,
+    "defaultSets": 3,
+    "defaultReps": 10,
+    "restTime": 90,
+    "caloriesPerRep": 1.2,
+    "instructions": [
+      "Start standing, drop into squat",
+      "Place hands down and jump feet back to plank",
+      "Do a push-up",
+      "Jump feet back to hands",
+      "Explode up with jump"
+    ],
+    "tips": [
+      "Land softly to protect joints",
+      "Maintain tight core throughout",
+      "Modify by stepping instead of jumping"
+    ],
+    "commonMistakes": [
+      "Skipping the push-up",
+      "Landing heavily on feet",
+      "Not fully extending on jump"
+    ],
+    "tags": ["hiit", "cardio", "full-body", "no-equipment"],
+    "alternativeExercises": ["ex_mountain_climber_001"],
+    "isPopular": true,
+    "difficulty_score": 7
+  },
+  {
+    "id": "ex_pullup_001",
+    "name": "Pull-ups",
+    "description": "Upper body pulling exercise",
+    "category": "strength",
+    "muscleGroups": ["back", "biceps", "shoulders"],
+    "equipment": ["pull_up_bar"],
+    "difficulty": "advanced",
+    "youtubeUrl": "https://www.youtube.com/watch?v=eGo4IYlbE5g",
+    "videoId": "eGo4IYlbE5g",
+    "thumbnailUrl": "https://img.youtube.com/vi/eGo4IYlbE5g/maxresdefault.jpg",
+    "videoDuration": 300,
+    "defaultSets": 3,
+    "defaultReps": 8,
+    "restTime": 120,
+    "caloriesPerRep": 1.5,
+    "instructions": [
+      "Hang from bar with overhand grip",
+      "Pull yourself up until chin is over bar",
+      "Lower with control to full extension",
+      "Repeat without swinging"
+    ],
+    "tips": [
+      "Engage lats before pulling",
+      "Keep core tight to prevent swing",
+      "Full range of motion is key"
+    ],
+    "commonMistakes": [
+      "Using momentum to swing",
+      "Not going to full extension",
+      "Kipping when learning"
+    ],
+    "tags": ["upper-body", "back", "advanced"],
+    "alternativeExercises": ["ex_assisted_pullup_001", "ex_inverted_row_001"],
+    "isPopular": true,
+    "difficulty_score": 9
+  },
+  {
+    "id": "ex_lunge_001",
+    "name": "Walking Lunges",
+    "description": "Dynamic leg exercise",
+    "category": "strength",
+    "muscleGroups": ["quads", "glutes", "hamstrings"],
+    "equipment": ["none"],
+    "difficulty": "beginner",
+    "youtubeUrl": "https://www.youtube.com/watch?v=L8fvypPrzzs",
+    "videoId": "L8fvypPrzzs",
+    "thumbnailUrl": "https://img.youtube.com/vi/L8fvypPrzzs/maxresdefault.jpg",
+    "videoDuration": 180,
+    "defaultSets": 3,
+    "defaultReps": 12,
+    "restTime": 60,
+    "caloriesPerRep": 0.6,
+    "instructions": [
+      "Step forward with one leg",
+      "Lower back knee toward ground",
+      "Front thigh should be parallel to floor",
+      "Push through front heel to step forward"
+    ],
+    "tips": [
+      "Keep torso upright",
+      "Don't let knee extend past toes",
+      "Take consistent step lengths"
+    ],
+    "commonMistakes": [
+      "Leaning forward",
+      "Knee caving inward",
+      "Steps too short or too long"
+    ],
+    "tags": ["legs", "bodyweight", "no-equipment"],
+    "alternativeExercises": ["ex_reverse_lunge_001", "ex_bulgarian_split_squat_001"],
+    "isPopular": true,
+    "difficulty_score": 4
+  },
+  {
+    "id": "ex_mountain_climber_001",
+    "name": "Mountain Climbers",
+    "description": "Dynamic cardio and core exercise",
+    "category": "cardio",
+    "muscleGroups": ["abs", "shoulders", "cardio"],
+    "equipment": ["none"],
+    "difficulty": "intermediate",
+    "youtubeUrl": "https://www.youtube.com/watch?v=nmwgirgXLYM",
+    "videoId": "nmwgirgXLYM",
+    "thumbnailUrl": "https://img.youtube.com/vi/nmwgirgXLYM/maxresdefault.jpg",
+    "videoDuration": 150,
+    "defaultSets": 3,
+    "defaultDuration": 30,
+    "restTime": 60,
+    "caloriesPerRep": 0.8,
+    "instructions": [
+      "Start in push-up position",
+      "Bring one knee toward chest",
+      "Quickly switch legs",
+      "Maintain plank position throughout"
+    ],
+    "tips": [
+      "Keep hips level",
+      "Breathe rhythmically",
+      "Start slow and build speed"
+    ],
+    "commonMistakes": [
+      "Hips too high",
+      "Not engaging core",
+      "Going too fast with poor form"
+    ],
+    "tags": ["cardio", "core", "hiit", "no-equipment"],
+    "alternativeExercises": ["ex_burpee_001", "ex_high_knees_001"],
+    "isPopular": true,
+    "difficulty_score": 5
+  },
+  {
+    "id": "ex_dips_001",
+    "name": "Tricep Dips",
+    "description": "Upper body pushing exercise",
+    "category": "strength",
+    "muscleGroups": ["triceps", "chest", "shoulders"],
+    "equipment": ["bench"],
+    "difficulty": "intermediate",
+    "youtubeUrl": "https://www.youtube.com/watch?v=0326dy_-CzM",
+    "videoId": "0326dy_-CzM",
+    "thumbnailUrl": "https://img.youtube.com/vi/0326dy_-CzM/maxresdefault.jpg",
+    "videoDuration": 200,
+    "defaultSets": 3,
+    "defaultReps": 12,
+    "restTime": 90,
+    "caloriesPerRep": 0.7,
+    "instructions": [
+      "Place hands on bench behind you",
+      "Extend legs forward with heels on ground",
+      "Lower body by bending elbows",
+      "Push back up to starting position"
+    ],
+    "tips": [
+      "Keep elbows close to body",
+      "Don't shrug shoulders",
+      "Go only as low as comfortable"
+    ],
+    "commonMistakes": [
+      "Going too deep",
+      "Shoulders shrugging up",
+      "Elbows flaring out"
+    ],
+    "tags": ["upper-body", "triceps", "minimal-equipment"],
+    "alternativeExercises": ["ex_close_grip_pushup_001"],
+    "isPopular": true,
+    "difficulty_score": 5
+  },
+  {
+    "id": "ex_jumpingjacks_001",
+    "name": "Jumping Jacks",
+    "description": "Classic cardio warm-up exercise",
+    "category": "cardio",
+    "muscleGroups": ["full_body", "cardio"],
+    "equipment": ["none"],
+    "difficulty": "beginner",
+    "youtubeUrl": "https://www.youtube.com/watch?v=c4DAnQ6DtF8",
+    "videoId": "c4DAnQ6DtF8",
+    "thumbnailUrl": "https://img.youtube.com/vi/c4DAnQ6DtF8/maxresdefault.jpg",
+    "videoDuration": 120,
+    "defaultSets": 3,
+    "defaultReps": 30,
+    "restTime": 30,
+    "caloriesPerRep": 0.3,
+    "instructions": [
+      "Stand with feet together, arms at sides",
+      "Jump feet out while raising arms overhead",
+      "Jump back to starting position",
+      "Maintain steady rhythm"
+    ],
+    "tips": [
+      "Land softly on balls of feet",
+      "Keep core engaged",
+      "Breathe naturally"
+    ],
+    "commonMistakes": [
+      "Landing heavily",
+      "Not fully extending arms",
+      "Going too fast"
+    ],
+    "tags": ["cardio", "warm-up", "no-equipment", "beginner-friendly"],
+    "alternativeExercises": ["ex_high_knees_001"],
+    "isPopular": true,
+    "difficulty_score": 1
+  },
+  {
+    "id": "ex_deadlift_001",
+    "name": "Dumbbell Deadlifts",
+    "description": "Posterior chain strength exercise",
+    "category": "strength",
+    "muscleGroups": ["hamstrings", "glutes", "lower_back"],
+    "equipment": ["dumbbells"],
+    "difficulty": "intermediate",
+    "youtubeUrl": "https://www.youtube.com/watch?v=lJ3QwaXNJfw",
+    "videoId": "lJ3QwaXNJfw",
+    "thumbnailUrl": "https://img.youtube.com/vi/lJ3QwaXNJfw/maxresdefault.jpg",
+    "videoDuration": 240,
+    "defaultSets": 4,
+    "defaultReps": 10,
+    "restTime": 90,
+    "caloriesPerRep": 1.0,
+    "instructions": [
+      "Hold dumbbells at sides with feet hip-width",
+      "Hinge at hips, pushing them back",
+      "Lower weights along legs with flat back",
+      "Drive through heels to stand"
+    ],
+    "tips": [
+      "Keep back neutral throughout",
+      "Lead with hips, not shoulders",
+      "Weights stay close to legs"
+    ],
+    "commonMistakes": [
+      "Rounding lower back",
+      "Bending knees too much",
+      "Not engaging lats"
+    ],
+    "tags": ["lower-body", "dumbbells", "posterior-chain"],
+    "alternativeExercises": ["ex_romanian_deadlift_001"],
+    "isPopular": true,
+    "difficulty_score": 6
+  }
+]

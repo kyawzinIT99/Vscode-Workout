@@ -1,0 +1,382 @@
+[
+  {
+    "id": "workout_beginner_fullbody_001",
+    "name": "Beginner Full Body Blast",
+    "description": "Perfect first workout for fitness newcomers. Build strength and confidence with fundamental movements.",
+    "category": "strength",
+    "difficulty": "beginner",
+    "exercises": [
+      {
+        "exerciseId": "ex_jumpingjacks_001",
+        "sets": 2,
+        "reps": 20,
+        "restTime": 30
+      },
+      {
+        "exerciseId": "ex_pushup_001",
+        "sets": 3,
+        "reps": 10,
+        "restTime": 60
+      },
+      {
+        "exerciseId": "ex_squat_001",
+        "sets": 3,
+        "reps": 15,
+        "restTime": 60
+      },
+      {
+        "exerciseId": "ex_plank_001",
+        "sets": 3,
+        "duration": 20,
+        "restTime": 45
+      },
+      {
+        "exerciseId": "ex_lunge_001",
+        "sets": 2,
+        "reps": 10,
+        "restTime": 60
+      }
+    ],
+    "estimatedDuration": 25,
+    "estimatedCalories": 180,
+    "type": "straight_sets",
+    "equipment": ["none"],
+    "targetMuscles": ["full_body", "chest", "legs", "abs"],
+    "tags": ["beginner", "full-body", "home-workout"],
+    "goals": ["strength", "endurance"],
+    "primaryColor": "#FF6B6B",
+    "gradientColors": ["#FF6B6B", "#FF8E53", "#FFA500"],
+    "iconEmoji": "🔥",
+    "completionCount": 1523,
+    "averageRating": 4.8,
+    "isPopular": true,
+    "isFeatured": true
+  },
+  {
+    "id": "workout_hiit_cardio_001",
+    "name": "HIIT Cardio Blast",
+    "description": "High-intensity interval training to torch calories and boost metabolism. Get ready to sweat!",
+    "category": "hiit",
+    "difficulty": "intermediate",
+    "exercises": [
+      {
+        "exerciseId": "ex_jumpingjacks_001",
+        "sets": 1,
+        "duration": 60,
+        "restTime": 15
+      },
+      {
+        "exerciseId": "ex_burpee_001",
+        "sets": 4,
+        "reps": 10,
+        "restTime": 45
+      },
+      {
+        "exerciseId": "ex_mountain_climber_001",
+        "sets": 4,
+        "duration": 30,
+        "restTime": 30
+      },
+      {
+        "exerciseId": "ex_jumpingjacks_001",
+        "sets": 3,
+        "duration": 45,
+        "restTime": 20
+      }
+    ],
+    "estimatedDuration": 20,
+    "estimatedCalories": 350,
+    "type": "circuit",
+    "rounds": 3,
+    "equipment": ["none"],
+    "targetMuscles": ["full_body", "cardio"],
+    "tags": ["hiit", "cardio", "fat-burn", "no-equipment"],
+    "goals": ["weight_loss", "endurance"],
+    "primaryColor": "#F83600",
+    "gradientColors": ["#F83600", "#FE8C00", "#FFDD00"],
+    "iconEmoji": "⚡",
+    "completionCount": 2847,
+    "averageRating": 4.6,
+    "isPopular": true,
+    "isFeatured": true
+  },
+  {
+    "id": "workout_upper_strength_001",
+    "name": "Upper Body Power",
+    "description": "Build impressive upper body strength with this challenging pushing and pulling workout.",
+    "category": "strength",
+    "difficulty": "intermediate",
+    "exercises": [
+      {
+        "exerciseId": "ex_pushup_001",
+        "sets": 4,
+        "reps": 15,
+        "restTime": 90
+      },
+      {
+        "exerciseId": "ex_pullup_001",
+        "sets": 4,
+        "reps": 6,
+        "restTime": 120
+      },
+      {
+        "exerciseId": "ex_dips_001",
+        "sets": 3,
+        "reps": 12,
+        "restTime": 90
+      },
+      {
+        "exerciseId": "ex_plank_001",
+        "sets": 3,
+        "duration": 45,
+        "restTime": 60
+      }
+    ],
+    "estimatedDuration": 35,
+    "estimatedCalories": 280,
+    "type": "straight_sets",
+    "equipment": ["pull_up_bar", "bench"],
+    "targetMuscles": ["chest", "back", "shoulders", "triceps", "biceps"],
+    "tags": ["upper-body", "strength", "intermediate"],
+    "goals": ["strength", "muscle_gain"],
+    "primaryColor": "#667EEA",
+    "gradientColors": ["#667EEA", "#764BA2", "#F093FB"],
+    "iconEmoji": "💪",
+    "completionCount": 1892,
+    "averageRating": 4.7,
+    "isPopular": true,
+    "isFeatured": false
+  },
+  {
+    "id": "workout_lower_strength_001",
+    "name": "Leg Day Crusher",
+    "description": "Build powerful legs and glutes with this comprehensive lower body workout.",
+    "category": "strength",
+    "difficulty": "intermediate",
+    "exercises": [
+      {
+        "exerciseId": "ex_squat_001",
+        "sets": 4,
+        "reps": 20,
+        "restTime": 90
+      },
+      {
+        "exerciseId": "ex_lunge_001",
+        "sets": 3,
+        "reps": 15,
+        "restTime": 75
+      },
+      {
+        "exerciseId": "ex_deadlift_001",
+        "sets": 4,
+        "reps": 12,
+        "restTime": 90
+      },
+      {
+        "exerciseId": "ex_jumpingjacks_001",
+        "sets": 3,
+        "reps": 25,
+        "restTime": 45
+      }
+    ],
+    "estimatedDuration": 35,
+    "estimatedCalories": 320,
+    "type": "straight_sets",
+    "equipment": ["dumbbells"],
+    "targetMuscles": ["quads", "hamstrings", "glutes", "calves"],
+    "tags": ["lower-body", "legs", "strength"],
+    "goals": ["strength", "muscle_gain"],
+    "primaryColor": "#11998E",
+    "gradientColors": ["#11998E", "#38EF7D", "#78FFD6"],
+    "iconEmoji": "🦵",
+    "completionCount": 1567,
+    "averageRating": 4.5,
+    "isPopular": true,
+    "isFeatured": false
+  },
+  {
+    "id": "workout_core_crusher_001",
+    "name": "Core Crusher",
+    "description": "Strengthen your entire core with this targeted abs and obliques workout.",
+    "category": "strength",
+    "difficulty": "beginner",
+    "exercises": [
+      {
+        "exerciseId": "ex_plank_001",
+        "sets": 3,
+        "duration": 40,
+        "restTime": 45
+      },
+      {
+        "exerciseId": "ex_mountain_climber_001",
+        "sets": 3,
+        "duration": 30,
+        "restTime": 30
+      },
+      {
+        "exerciseId": "ex_plank_001",
+        "sets": 2,
+        "duration": 30,
+        "restTime": 30
+      }
+    ],
+    "estimatedDuration": 15,
+    "estimatedCalories": 120,
+    "type": "circuit",
+    "rounds": 2,
+    "equipment": ["yoga_mat"],
+    "targetMuscles": ["abs", "obliques", "lower_back"],
+    "tags": ["core", "abs", "short-workout"],
+    "goals": ["strength"],
+    "primaryColor": "#8E2DE2",
+    "gradientColors": ["#4A00E0", "#8E2DE2", "#DA22FF"],
+    "iconEmoji": "🎯",
+    "completionCount": 2134,
+    "averageRating": 4.4,
+    "isPopular": true,
+    "isFeatured": false
+  },
+  {
+    "id": "workout_quick_morning_001",
+    "name": "Quick Morning Energizer",
+    "description": "Wake up your body with this efficient 10-minute full body routine. Perfect before work!",
+    "category": "cardio",
+    "difficulty": "beginner",
+    "exercises": [
+      {
+        "exerciseId": "ex_jumpingjacks_001",
+        "sets": 2,
+        "reps": 25,
+        "restTime": 15
+      },
+      {
+        "exerciseId": "ex_pushup_001",
+        "sets": 2,
+        "reps": 10,
+        "restTime": 20
+      },
+      {
+        "exerciseId": "ex_squat_001",
+        "sets": 2,
+        "reps": 15,
+        "restTime": 20
+      },
+      {
+        "exerciseId": "ex_mountain_climber_001",
+        "sets": 2,
+        "duration": 20,
+        "restTime": 15
+      }
+    ],
+    "estimatedDuration": 10,
+    "estimatedCalories": 100,
+    "type": "circuit",
+    "rounds": 2,
+    "equipment": ["none"],
+    "targetMuscles": ["full_body"],
+    "tags": ["quick", "morning", "beginner", "no-equipment"],
+    "goals": ["endurance"],
+    "primaryColor": "#FA709A",
+    "gradientColors": ["#FA709A", "#FEE140", "#FFC371"],
+    "iconEmoji": "☀️",
+    "completionCount": 3421,
+    "averageRating": 4.9,
+    "isPopular": true,
+    "isFeatured": true
+  },
+  {
+    "id": "workout_advanced_athlete_001",
+    "name": "Advanced Athlete Challenge",
+    "description": "Elite-level full body workout for serious athletes. Push your limits!",
+    "category": "hybrid",
+    "difficulty": "advanced",
+    "exercises": [
+      {
+        "exerciseId": "ex_burpee_001",
+        "sets": 5,
+        "reps": 15,
+        "restTime": 60
+      },
+      {
+        "exerciseId": "ex_pullup_001",
+        "sets": 5,
+        "reps": 10,
+        "restTime": 90
+      },
+      {
+        "exerciseId": "ex_pushup_001",
+        "sets": 4,
+        "reps": 25,
+        "restTime": 60
+      },
+      {
+        "exerciseId": "ex_squat_001",
+        "sets": 4,
+        "reps": 30,
+        "restTime": 75
+      },
+      {
+        "exerciseId": "ex_mountain_climber_001",
+        "sets": 4,
+        "duration": 45,
+        "restTime": 45
+      }
+    ],
+    "estimatedDuration": 50,
+    "estimatedCalories": 550,
+    "type": "straight_sets",
+    "equipment": ["pull_up_bar"],
+    "targetMuscles": ["full_body"],
+    "tags": ["advanced", "intense", "athlete"],
+    "goals": ["strength", "endurance"],
+    "primaryColor": "#FF6B6B",
+    "gradientColors": ["#F83600", "#FE8C00", "#FFDD00"],
+    "iconEmoji": "🏆",
+    "completionCount": 456,
+    "averageRating": 4.8,
+    "isPopular": false,
+    "isFeatured": false
+  },
+  {
+    "id": "workout_cardio_endurance_001",
+    "name": "Cardio Endurance Builder",
+    "description": "Improve your cardiovascular fitness with this steady-state cardio workout.",
+    "category": "cardio",
+    "difficulty": "intermediate",
+    "exercises": [
+      {
+        "exerciseId": "ex_jumpingjacks_001",
+        "sets": 4,
+        "duration": 60,
+        "restTime": 30
+      },
+      {
+        "exerciseId": "ex_mountain_climber_001",
+        "sets": 4,
+        "duration": 45,
+        "restTime": 30
+      },
+      {
+        "exerciseId": "ex_burpee_001",
+        "sets": 3,
+        "reps": 12,
+        "restTime": 60
+      }
+    ],
+    "estimatedDuration": 25,
+    "estimatedCalories": 300,
+    "type": "circuit",
+    "rounds": 3,
+    "equipment": ["none"],
+    "targetMuscles": ["cardio", "full_body"],
+    "tags": ["cardio", "endurance", "fat-burn"],
+    "goals": ["endurance", "weight_loss"],
+    "primaryColor": "#667EEA",
+    "gradientColors": ["#667EEA", "#764BA2", "#F093FB"],
+    "iconEmoji": "❤️",
+    "completionCount": 1876,
+    "averageRating": 4.6,
+    "isPopular": true,
+    "isFeatured": false
+  }
+]
