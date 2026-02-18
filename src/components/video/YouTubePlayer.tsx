@@ -1,12 +1,14 @@
 /**
  * YouTubePlayer Component
- * Embedded YouTube video player with glassmorphism controls
+ * iOS: Embedded YouTube iframe player
+ * Android: Thumbnail preview + "Open in YouTube" (iframe unreliable in Expo Go)
  */
 
 import React, { useState, useCallback } from 'react';
-import { View, StyleSheet, Dimensions, Text } from 'react-native';
+import { View, StyleSheet, Text, TouchableOpacity, Linking, Platform, Image } from 'react-native';
 import YoutubePlayer from 'react-native-youtube-iframe';
 import { BlurView } from 'expo-blur';
+import { Ionicons } from '@expo/vector-icons';
 import { COLORS, GLASS } from '../../constants/colors';
 import { TYPOGRAPHY } from '../../constants/typography';
 
@@ -17,8 +19,6 @@ interface YouTubePlayerProps {
   onEnd?: () => void;
   onReady?: () => void;
 }
-
-const { width } = Dimensions.get('window');
 
 const YouTubePlayerComponent: React.FC<YouTubePlayerProps> = ({
   videoId,
@@ -49,6 +49,11 @@ const YouTubePlayerComponent: React.FC<YouTubePlayerProps> = ({
     onReady?.();
   }, [onReady]);
 
+  const handleOpenInYouTube = useCallback(() => {
+    const url = `https://www.youtube.com/watch?v=${videoId}`;
+    Linking.openURL(url).catch(() => {});
+  }, [videoId]);
+
   if (!videoId) {
     return (
       <View style={[styles.container, { height }]}>
@@ -59,6 +64,33 @@ const YouTubePlayerComponent: React.FC<YouTubePlayerProps> = ({
     );
   }
 
+  // Android: thumbnail + open-in-YouTube button (iframe is broken in Expo Go)
+  if (Platform.OS === 'android') {
+    return (
+      <TouchableOpacity
+        style={[styles.container, { height }]}
+        activeOpacity={0.8}
+        onPress={handleOpenInYouTube}
+      >
+        <Image
+          source={{ uri: `https://img.youtube.com/vi/${videoId}/hqdefault.jpg` }}
+          style={styles.thumbnail}
+          resizeMode="cover"
+        />
+        <View style={styles.thumbnailOverlay}>
+          <View style={styles.playCircle}>
+            <Ionicons name="play" size={36} color={COLORS.white} style={{ marginLeft: 4 }} />
+          </View>
+          <View style={styles.youtubeLabel}>
+            <Ionicons name="logo-youtube" size={16} color="#FF0000" />
+            <Text style={styles.youtubeLabelText}>Watch on YouTube</Text>
+          </View>
+        </View>
+      </TouchableOpacity>
+    );
+  }
+
+  // iOS: embedded iframe player
   return (
     <View style={[styles.container, { height }]}>
       <View style={styles.playerWrapper}>
@@ -68,11 +100,22 @@ const YouTubePlayerComponent: React.FC<YouTubePlayerProps> = ({
           videoId={videoId}
           onChangeState={onStateChange}
           onReady={onPlayerReady}
+          initialPlayerParams={{
+            modestbranding: true,
+            rel: false,
+          }}
           webViewProps={{
-            androidLayerType: 'hardware',
+            allowsInlineMediaPlayback: true,
+            mediaPlaybackRequiresUserAction: false,
           }}
         />
       </View>
+
+      {ready && (
+        <TouchableOpacity style={styles.externalButton} onPress={handleOpenInYouTube}>
+          <Ionicons name="open-outline" size={14} color={COLORS.white} />
+        </TouchableOpacity>
+      )}
 
       {!ready && (
         <View style={styles.loadingOverlay}>
@@ -106,6 +149,54 @@ const styles = StyleSheet.create({
   errorText: {
     ...TYPOGRAPHY.body,
     color: COLORS.textSecondary,
+  },
+  // Android thumbnail styles
+  thumbnail: {
+    ...StyleSheet.absoluteFillObject,
+    width: '100%',
+    height: '100%',
+  },
+  thumbnailOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0, 0, 0, 0.3)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  playCircle: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: 'rgba(255, 0, 0, 0.85)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  youtubeLabel: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginTop: 12,
+    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    paddingHorizontal: 14,
+    paddingVertical: 6,
+    borderRadius: 16,
+  },
+  youtubeLabelText: {
+    ...TYPOGRAPHY.caption,
+    color: COLORS.white,
+    fontWeight: '600',
+    fontSize: 12,
+  },
+  // iOS external button
+  externalButton: {
+    position: 'absolute',
+    bottom: 8,
+    right: 8,
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   loadingOverlay: {
     ...StyleSheet.absoluteFillObject,

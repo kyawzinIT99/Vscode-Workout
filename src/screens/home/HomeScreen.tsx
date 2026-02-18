@@ -17,8 +17,9 @@ import { TYPOGRAPHY } from '../../constants/typography';
 import { useUserContext } from '../../context/UserContext';
 import { WorkoutProgram } from '../../types/workout.types';
 import workoutsData from '../../data/workouts.json';
-import { loadTodayWater, addWaterIntake } from '../../services/storage';
+import { loadTodayWater, addWaterIntake, getWaterGoal } from '../../services/storage';
 import { WaterDailyLog } from '../../types/workout.types';
+import useWaterSounds from '../../hooks/useWaterSounds';
 
 const { width } = Dimensions.get('window');
 
@@ -28,6 +29,8 @@ const HomeScreen: React.FC = () => {
   const [featuredWorkouts, setFeaturedWorkouts] = useState<WorkoutProgram[]>([]);
   const [timeOfDay, setTimeOfDay] = useState('');
   const [waterLog, setWaterLog] = useState<WaterDailyLog | null>(null);
+  const [goalMl, setGoalMl] = useState(2000);
+  const { playDrop, playGoalReached } = useWaterSounds();
 
   useEffect(() => {
     // Load featured workouts
@@ -45,14 +48,23 @@ const HomeScreen: React.FC = () => {
   useFocusEffect(
     useCallback(() => {
       loadTodayWater().then(setWaterLog);
+      getWaterGoal().then(setGoalMl);
     }, [])
   );
 
   const handleQuickAddWater = async () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    const prevTotal = waterLog?.totalMl || 0;
     await addWaterIntake(250);
     const updated = await loadTodayWater();
     setWaterLog(updated);
+    playDrop();
+    if (prevTotal < goalMl && prevTotal + 250 >= goalMl) {
+      setTimeout(() => {
+        playGoalReached();
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      }, 300);
+    }
   };
 
   const waterProgress = waterLog ? Math.min(waterLog.totalMl / waterLog.goalMl, 1) : 0;
@@ -171,10 +183,11 @@ const HomeScreen: React.FC = () => {
                   <Ionicons name="water" size={20} color={waterProgress >= 1 ? '#38EF7D' : '#667EEA'} />
                 </View>
                 <View style={styles.waterInfo}>
-                  <Text style={styles.waterTitle}>Hydration</Text>
+                  <Text style={styles.waterTitle}>Daily Water Intake</Text>
                   <Text style={styles.waterAmount}>
                     {waterLog?.totalMl || 0} / {waterLog?.goalMl || 2000} ml
                   </Text>
+                  <Text style={styles.waterHint}>Tap to log your drinks</Text>
                 </View>
               </View>
               <Ionicons name="chevron-forward" size={20} color={COLORS.textTertiary} />
@@ -491,6 +504,12 @@ const styles = StyleSheet.create({
     ...TYPOGRAPHY.caption,
     color: COLORS.textSecondary,
     fontSize: 13,
+  },
+  waterHint: {
+    ...TYPOGRAPHY.caption,
+    color: COLORS.textTertiary,
+    fontSize: 11,
+    marginTop: 2,
   },
   waterProgressBar: {
     height: 6,

@@ -33,6 +33,7 @@ import {
   getWaterGoal,
 } from '../../services/storage';
 import { WaterDailyLog, WaterIntake } from '../../types/workout.types';
+import useWaterSounds from '../../hooks/useWaterSounds';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const RING_SIZE = 200;
@@ -43,6 +44,7 @@ const WaterTrackerScreen: React.FC = () => {
   const [todayLog, setTodayLog] = useState<WaterDailyLog | null>(null);
   const [weeklyData, setWeeklyData] = useState<WaterDailyLog[]>([]);
   const [goalMl, setGoalMl] = useState(2000);
+  const { playDrop, playGoalReached } = useWaterSounds();
 
   const loadData = useCallback(async () => {
     const [today, history, goal] = await Promise.all([
@@ -61,8 +63,17 @@ const WaterTrackerScreen: React.FC = () => {
 
   const handleAddWater = async (amount: number) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    const prevTotal = todayLog?.totalMl || 0;
     await addWaterIntake(amount);
     await loadData();
+    playDrop();
+    // Check if goal just reached
+    if (prevTotal < goalMl && prevTotal + amount >= goalMl) {
+      setTimeout(() => {
+        playGoalReached();
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      }, 300);
+    }
   };
 
   const handleCustomAmount = () => {
@@ -160,6 +171,11 @@ const WaterTrackerScreen: React.FC = () => {
             <Ionicons name="settings-outline" size={22} color={COLORS.textSecondary} />
           </TouchableOpacity>
         </View>
+
+        {/* Guide subtitle */}
+        <Text style={styles.subtitle}>
+          Track your daily water intake to stay hydrated. Tap the buttons below to log each drink.
+        </Text>
 
         {/* Progress Ring */}
         <GlassCard style={styles.progressCard}>
@@ -347,6 +363,14 @@ const styles = StyleSheet.create({
     fontSize: 32,
     flex: 1,
     marginLeft: 16,
+  },
+  subtitle: {
+    ...TYPOGRAPHY.body,
+    color: COLORS.textSecondary,
+    fontSize: 13,
+    textAlign: 'center',
+    marginBottom: 16,
+    paddingHorizontal: 20,
   },
   goalButton: {
     width: 40,

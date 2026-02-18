@@ -3,7 +3,7 @@
  * Main screen for active workout session
  */
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Platform, StatusBar, Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import GradientBackground from '../../components/ui/GradientBackground';
@@ -16,7 +16,7 @@ import { useUserContext } from '../../context/UserContext';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import useTimer from '../../hooks/useTimer';
-import useRestTimerSound from '../../hooks/useRestTimerSound';
+import useWorkoutSounds from '../../hooks/useWorkoutSounds';
 import { shareText, getWorkoutShareMessage } from '../../services/sharing';
 
 const ActiveWorkoutScreen: React.FC = () => {
@@ -33,21 +33,46 @@ const ActiveWorkoutScreen: React.FC = () => {
   const [isResting, setIsResting] = useState(false);
   const [currentSetIndex, setCurrentSetIndex] = useState(0);
 
+  // Elapsed workout timer (counts up)
+  const workoutTimer = useTimer({
+    initialTime: 0,
+    countdown: false,
+    autoStart: true,
+  });
+
   const soundEnabled = user?.preferences?.soundEffects !== false;
-  const { playBeep, playComplete } = useRestTimerSound({ enabled: soundEnabled });
+  const {
+    playCountdown,
+    playWorkoutStart,
+    playLastThree,
+    playRestStart,
+    playNextSet,
+    playFinish,
+  } = useWorkoutSounds({ enabled: soundEnabled });
+
+  // Play workout-start sound once on mount
+  const didPlayStartRef = useRef(false);
+  useEffect(() => {
+    if (!didPlayStartRef.current) {
+      didPlayStartRef.current = true;
+      playWorkoutStart();
+    }
+  }, [playWorkoutStart]);
 
   const handleRestComplete = useCallback(() => {
     setIsResting(false);
-    playComplete();
+    playNextSet();
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-  }, [playComplete]);
+  }, [playNextSet]);
 
   const handleRestTick = useCallback((currentTime: number) => {
     if (currentTime > 0 && currentTime <= 3) {
-      playBeep();
+      playLastThree();
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    } else if (currentTime > 3) {
+      playCountdown();
     }
-  }, [playBeep]);
+  }, [playLastThree, playCountdown]);
 
   const restTimer = useTimer({
     initialTime: 0,
@@ -86,6 +111,7 @@ const ActiveWorkoutScreen: React.FC = () => {
       restTimer.setTime(currentExercise.restTime);
       restTimer.start();
       setIsResting(true);
+      playRestStart();
     }
   };
 
@@ -103,41 +129,26 @@ const ActiveWorkoutScreen: React.FC = () => {
     setCurrentSetIndex(0);
   };
 
-  const handleEndWorkout = () => {
+  const handleEndWorkout = async () => {
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
     restTimer.stop();
+    workoutTimer.pause();
 
     const workoutName = activeSession.workoutName;
-    const duration = activeSession.duration || 0;
+    const elapsedSeconds = workoutTimer.time;
     const calories = activeSession.estimatedCalories || 0;
     const completion = activeSession.completionRate || 0;
 
+    playFinish();
+    try {
+      const message = getWorkoutShareMessage(workoutName, elapsedSeconds, calories, completion);
+      await shareText(message);
+    } catch {
+      // User cancelled or sharing not available
+    }
+
     endWorkout();
     navigation.goBack();
-
-    // Prompt to share if workout had some completion
-    if (completion > 0) {
-      setTimeout(() => {
-        Alert.alert(
-          'Workout Complete!',
-          'Share your achievement?',
-          [
-            { text: 'Skip', style: 'cancel' },
-            {
-              text: 'Share',
-              onPress: async () => {
-                try {
-                  const message = getWorkoutShareMessage(workoutName, duration, calories, completion);
-                  await shareText(message);
-                } catch {
-                  // Sharing not available
-                }
-              },
-            },
-          ]
-        );
-      }, 500);
-    }
   };
 
   const allSetsCompleted = completedSets >= totalSets;
@@ -171,7 +182,15 @@ const ActiveWorkoutScreen: React.FC = () => {
             <TouchableOpacity onPress={handleEndWorkout} style={styles.closeButton}>
               <Ionicons name="close" size={28} color={COLORS.white} />
             </TouchableOpacity>
-            <Text style={styles.workoutTitle}>{activeSession.workoutName}</Text>
+            <View style={styles.headerInfo}>
+              <Text style={styles.workoutTitle}>{activeSession.workoutName}</Text>
+              <View style={styles.elapsedRow}>
+                <Ionicons name="time-outline" size={14} color={COLORS.textSecondary} />
+                <Text style={styles.elapsedText}>
+                  {Math.floor(workoutTimer.time / 60)}:{String(workoutTimer.time % 60).padStart(2, '0')}
+                </Text>
+              </View>
+            </View>
           </View>
 
           {/* Progress Bar */}
@@ -348,10 +367,23 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginRight: 12,
   },
+  headerInfo: {
+    flex: 1,
+  },
   workoutTitle: {
     ...TYPOGRAPHY.h3,
     color: COLORS.textPrimary,
-    flex: 1,
+  },
+  elapsedRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    marginTop: 2,
+  },
+  elapsedText: {
+    ...TYPOGRAPHY.caption,
+    color: COLORS.textSecondary,
+    fontSize: 13,
   },
   progressCard: {
     padding: 16,

@@ -3,6 +3,7 @@
  * Share workout achievements and stats as images or text
  */
 
+import { Share, Platform } from 'react-native';
 import * as Sharing from 'expo-sharing';
 import ViewShot from 'react-native-view-shot';
 import { RefObject } from 'react';
@@ -27,18 +28,14 @@ export const shareImage = async (
 };
 
 /**
- * Share text-only message (fallback when no image)
+ * Share text message using native share sheet
  */
 export const shareText = async (message: string): Promise<void> => {
-  // expo-sharing doesn't directly support text-only sharing,
-  // so we create a small text file and share it
-  const FileSystem = require('expo-file-system');
-  const filePath = `${FileSystem.cacheDirectory}fitglass_share.txt`;
-  await FileSystem.writeAsStringAsync(filePath, message);
-  await Sharing.shareAsync(filePath, {
-    mimeType: 'text/plain',
-    dialogTitle: 'Share Workout',
-  });
+  await Share.share(
+    Platform.OS === 'ios'
+      ? { message }
+      : { message, title: 'FitGlass Workout' },
+  );
 };
 
 /**

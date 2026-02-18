@@ -18,15 +18,16 @@ export interface UseTimerReturn {
 interface UseTimerOptions {
   initialTime?: number;
   countdown?: boolean;
+  autoStart?: boolean;
   onComplete?: () => void;
   onTick?: (currentTime: number) => void;
 }
 
 const useTimer = (options: UseTimerOptions = {}): UseTimerReturn => {
-  const { initialTime = 0, countdown = false, onComplete, onTick } = options;
+  const { initialTime = 0, countdown = false, autoStart = false, onComplete, onTick } = options;
 
   const [time, setTimeState] = useState(initialTime);
-  const [isRunning, setIsRunning] = useState(false);
+  const [isRunning, setIsRunning] = useState(autoStart);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   // Prevent onComplete from firing more than once per countdown run
   const completedRef = useRef(false);
