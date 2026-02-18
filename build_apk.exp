@@ -1,0 +1,21 @@
+#!/usr/bin/expect -f
+set timeout 600
+spawn npx eas build --platform android --profile preview
+expect {
+    "Generate a new Android Keystore?" {
+        send "Y\r"
+        exp_continue
+    }
+    "Would you like to" {
+        send "Y\r"
+        exp_continue
+    }
+    "https://expo.dev/accounts/" {
+        # Build URL appeared, we're done
+    }
+    "Build details:" {
+        # Build started
+        expect eof
+    }
+    eof
+}

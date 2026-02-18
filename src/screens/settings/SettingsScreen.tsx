@@ -18,14 +18,75 @@ import { useTheme } from '../../context/ThemeContext';
 import { useUserContext } from '../../context/UserContext';
 import { Language } from '../../constants/languages';
 import { exportCSV, exportPDF } from '../../services/export';
+import { requestNotificationPermissions, syncNotificationSchedule } from '../../services/notifications';
 
 const SettingsScreen: React.FC = () => {
   const navigation = useNavigation();
   const { language, setLanguage, t } = useLanguage();
   const { theme, toggleTheme, isDark } = useTheme();
-  const { user } = useUserContext();
-  const [notificationsEnabled, setNotificationsEnabled] = useState(true);
+  const { user, updateUser } = useUserContext();
   const [showLanguageMenu, setShowLanguageMenu] = useState(false);
+
+  const prefs = user?.preferences;
+  const notificationsEnabled = prefs?.notificationsEnabled ?? false;
+  const workoutReminderEnabled = prefs?.workoutReminderEnabled ?? false;
+  const workoutReminderTime = prefs?.workoutReminderTime ?? '08:00';
+  const waterReminderEnabled = prefs?.waterReminderEnabled ?? false;
+  const waterReminderInterval = prefs?.waterReminderInterval ?? 2;
+
+  const updatePreference = async (updates: Partial<typeof prefs>) => {
+    if (!prefs) return;
+    const newPrefs = { ...prefs, ...updates };
+    await updateUser({ preferences: newPrefs });
+    await syncNotificationSchedule(newPrefs);
+  };
+
+  const handleToggleNotifications = async (value: boolean) => {
+    if (value) {
+      const granted = await requestNotificationPermissions();
+      if (!granted) {
+        Alert.alert('Permission Denied', 'Please enable notifications in your device settings.');
+        return;
+      }
+    }
+    await updatePreference({ notificationsEnabled: value });
+  };
+
+  const handleToggleWorkoutReminder = async (value: boolean) => {
+    await updatePreference({ workoutReminderEnabled: value });
+  };
+
+  const handleChangeReminderTime = () => {
+    Alert.alert('Workout Reminder Time', 'Choose when to be reminded:', [
+      { text: '6:00 AM', onPress: () => updatePreference({ workoutReminderTime: '06:00' }) },
+      { text: '7:00 AM', onPress: () => updatePreference({ workoutReminderTime: '07:00' }) },
+      { text: '8:00 AM', onPress: () => updatePreference({ workoutReminderTime: '08:00' }) },
+      { text: '9:00 AM', onPress: () => updatePreference({ workoutReminderTime: '09:00' }) },
+      { text: '6:00 PM', onPress: () => updatePreference({ workoutReminderTime: '18:00' }) },
+      { text: 'Cancel', style: 'cancel' },
+    ]);
+  };
+
+  const handleToggleWaterReminder = async (value: boolean) => {
+    await updatePreference({ waterReminderEnabled: value });
+  };
+
+  const handleChangeWaterInterval = () => {
+    Alert.alert('Water Reminder Interval', 'Remind me every:', [
+      { text: 'Every 1 hour', onPress: () => updatePreference({ waterReminderInterval: 1 }) },
+      { text: 'Every 2 hours', onPress: () => updatePreference({ waterReminderInterval: 2 }) },
+      { text: 'Every 3 hours', onPress: () => updatePreference({ waterReminderInterval: 3 }) },
+      { text: 'Every 4 hours', onPress: () => updatePreference({ waterReminderInterval: 4 }) },
+      { text: 'Cancel', style: 'cancel' },
+    ]);
+  };
+
+  const formatTime12h = (time: string) => {
+    const [h, m] = time.split(':').map(Number);
+    const ampm = h >= 12 ? 'PM' : 'AM';
+    const hour = h % 12 || 12;
+    return `${hour}:${String(m).padStart(2, '0')} ${ampm}`;
+  };
 
   const languages = [
     { code: 'en' as Language, name: 'English', flag: '🇬🇧' },
@@ -184,31 +245,82 @@ const SettingsScreen: React.FC = () => {
             <Text style={styles.cardTitle}>{t('notifications')}</Text>
           </View>
 
+          {/* Master toggle */}
           <View style={styles.settingItem}>
             <View style={styles.settingLeft}>
               <Text style={styles.settingText}>{t('enableNotifications')}</Text>
             </View>
             <Switch
               value={notificationsEnabled}
-              onValueChange={setNotificationsEnabled}
+              onValueChange={handleToggleNotifications}
               trackColor={{ false: COLORS.textTertiary, true: COLORS.primary }}
               thumbColor={COLORS.white}
             />
           </View>
 
-          <View style={styles.divider} />
+          {notificationsEnabled && (
+            <>
+              <View style={styles.divider} />
 
-          <View style={styles.settingItem}>
-            <View style={styles.settingLeft}>
-              <Text style={styles.settingText}>Workout Reminders</Text>
-            </View>
-            <Switch
-              value={notificationsEnabled}
-              onValueChange={setNotificationsEnabled}
-              trackColor={{ false: COLORS.textTertiary, true: COLORS.primary}}
-              thumbColor={COLORS.white}
-            />
-          </View>
+              {/* Workout Reminder toggle */}
+              <View style={styles.settingItem}>
+                <View style={styles.settingLeft}>
+                  <Ionicons name="barbell-outline" size={18} color={COLORS.textSecondary} />
+                  <Text style={styles.settingText}>Workout Reminders</Text>
+                </View>
+                <Switch
+                  value={workoutReminderEnabled}
+                  onValueChange={handleToggleWorkoutReminder}
+                  trackColor={{ false: COLORS.textTertiary, true: COLORS.primary }}
+                  thumbColor={COLORS.white}
+                />
+              </View>
+
+              {/* Workout Reminder time */}
+              {workoutReminderEnabled && (
+                <TouchableOpacity style={styles.settingItem} onPress={handleChangeReminderTime}>
+                  <View style={styles.settingLeft}>
+                    <Ionicons name="time-outline" size={18} color={COLORS.textSecondary} />
+                    <Text style={styles.settingText}>Reminder Time</Text>
+                  </View>
+                  <View style={styles.timeValueRow}>
+                    <Text style={styles.timeValue}>{formatTime12h(workoutReminderTime)}</Text>
+                    <Ionicons name="chevron-forward" size={16} color={COLORS.textTertiary} />
+                  </View>
+                </TouchableOpacity>
+              )}
+
+              <View style={styles.divider} />
+
+              {/* Water Reminder toggle */}
+              <View style={styles.settingItem}>
+                <View style={styles.settingLeft}>
+                  <Ionicons name="water-outline" size={18} color={COLORS.textSecondary} />
+                  <Text style={styles.settingText}>Water Reminders</Text>
+                </View>
+                <Switch
+                  value={waterReminderEnabled}
+                  onValueChange={handleToggleWaterReminder}
+                  trackColor={{ false: COLORS.textTertiary, true: COLORS.primary }}
+                  thumbColor={COLORS.white}
+                />
+              </View>
+
+              {/* Water Reminder interval */}
+              {waterReminderEnabled && (
+                <TouchableOpacity style={styles.settingItem} onPress={handleChangeWaterInterval}>
+                  <View style={styles.settingLeft}>
+                    <Ionicons name="repeat-outline" size={18} color={COLORS.textSecondary} />
+                    <Text style={styles.settingText}>Interval</Text>
+                  </View>
+                  <View style={styles.timeValueRow}>
+                    <Text style={styles.timeValue}>Every {waterReminderInterval}h</Text>
+                    <Ionicons name="chevron-forward" size={16} color={COLORS.textTertiary} />
+                  </View>
+                </TouchableOpacity>
+              )}
+            </>
+          )}
         </GlassCard>
 
         {/* Appearance */}
@@ -418,6 +530,16 @@ const styles = StyleSheet.create({
   infoValue: {
     ...TYPOGRAPHY.body,
     color: COLORS.textPrimary,
+    fontWeight: '600',
+  },
+  timeValueRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  timeValue: {
+    ...TYPOGRAPHY.body,
+    color: COLORS.primary,
     fontWeight: '600',
   },
   dangerText: {

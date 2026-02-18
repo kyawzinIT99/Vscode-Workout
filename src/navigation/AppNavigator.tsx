@@ -14,6 +14,7 @@ import CalorieCalculatorScreen from '../screens/nutrition/CalorieCalculatorScree
 import SettingsScreen from '../screens/settings/SettingsScreen';
 import BodyMeasurementsScreen from '../screens/measurements/BodyMeasurementsScreen';
 import WaterTrackerScreen from '../screens/water/WaterTrackerScreen';
+import NutritionLogScreen from '../screens/nutrition/NutritionLogScreen';
 
 export type RootStackParamList = {
   MainTabs: undefined;
@@ -24,6 +25,7 @@ export type RootStackParamList = {
   Settings: undefined;
   BodyMeasurements: undefined;
   WaterTracker: undefined;
+  NutritionLog: undefined;
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -45,6 +47,7 @@ const AppNavigator: React.FC = () => {
         <Stack.Screen name="Settings" component={SettingsScreen} />
         <Stack.Screen name="BodyMeasurements" component={BodyMeasurementsScreen} />
         <Stack.Screen name="WaterTracker" component={WaterTrackerScreen} />
+        <Stack.Screen name="NutritionLog" component={NutritionLogScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );

@@ -7,7 +7,9 @@ import React, { forwardRef } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
-import ViewShot from 'react-native-view-shot';
+// import ViewShot from 'react-native-view-shot'; // Use SafeViewShot instead to prevent crash
+import SafeViewShot from '../SafeViewShot';
+import type ViewShot from 'react-native-view-shot';
 
 export type ShareCardType = 'workout_complete' | 'achievement' | 'streak';
 
@@ -32,7 +34,7 @@ const ShareCard = forwardRef<ViewShot, ShareCardProps>(({ type, title, stats, su
   };
 
   return (
-    <ViewShot ref={ref} options={{ format: 'png', quality: 1 }}>
+    <SafeViewShot ref={ref} options={{ format: 'png', quality: 1 }}>
       <LinearGradient
         colors={gradients[type] as [string, string]}
         start={{ x: 0, y: 0 }}
@@ -67,7 +69,7 @@ const ShareCard = forwardRef<ViewShot, ShareCardProps>(({ type, title, stats, su
         {/* Footer */}
         <Text style={styles.footer}>fitglass.app</Text>
       </LinearGradient>
-    </ViewShot>
+    </SafeViewShot>
   );
 });
 

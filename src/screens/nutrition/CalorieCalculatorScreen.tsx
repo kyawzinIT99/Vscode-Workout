@@ -15,6 +15,8 @@ import GlassButton from '../../components/ui/GlassButton';
 import { COLORS, GRADIENTS } from '../../constants/colors';
 import { TYPOGRAPHY } from '../../constants/typography';
 import { recognizeFood, RecognitionResult } from '../../services/foodRecognition';
+import { saveNutritionEntry } from '../../services/storage';
+import { MealType, NutritionEntry } from '../../types/workout.types';
 import * as Haptics from 'expo-haptics';
 
 const CalorieCalculatorScreen: React.FC = () => {
@@ -90,6 +92,56 @@ const CalorieCalculatorScreen: React.FC = () => {
     } finally {
       setIsAnalyzing(false);
     }
+  };
+
+  // Save scanned food to nutrition log
+  const handleSaveToLog = () => {
+    if (!result) return;
+    Alert.alert(
+      'Log Meal',
+      'What type of meal is this?',
+      [
+        { text: 'Breakfast', onPress: () => saveMeal('breakfast') },
+        { text: 'Lunch', onPress: () => saveMeal('lunch') },
+        { text: 'Dinner', onPress: () => saveMeal('dinner') },
+        { text: 'Snack', onPress: () => saveMeal('snack') },
+        { text: 'Cancel', style: 'cancel' },
+      ]
+    );
+  };
+
+  const saveMeal = async (mealType: MealType) => {
+    if (!result) return;
+    const today = new Date();
+    const dateStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+
+    const entry: NutritionEntry = {
+      id: `nutrition_${Date.now()}`,
+      date: dateStr,
+      mealType,
+      foods: result.foods.map(f => ({
+        name: f.name,
+        calories: f.calories,
+        protein: f.protein,
+        carbs: f.carbs,
+        fat: f.fat,
+        serving: f.serving,
+        confidence: f.confidence,
+      })),
+      totalCalories: result.totalCalories,
+      totalProtein: result.totalProtein,
+      totalCarbs: result.totalCarbs,
+      totalFat: result.totalFat,
+      imageUri: result.imageUri,
+      timestamp: Date.now(),
+    };
+
+    await saveNutritionEntry(entry);
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    Alert.alert('Saved!', 'Meal logged successfully', [
+      { text: 'View Log', onPress: () => navigation.navigate('NutritionLog' as never) },
+      { text: 'OK' },
+    ]);
   };
 
   // Reset and take new photo
@@ -223,7 +275,7 @@ const CalorieCalculatorScreen: React.FC = () => {
               />
               <GlassButton
                 title="Save to Log"
-                onPress={() => Alert.alert('Saved!', 'Meal logged successfully')}
+                onPress={handleSaveToLog}
                 variant="primary"
                 style={styles.actionButton}
               />

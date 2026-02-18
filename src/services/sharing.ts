@@ -3,10 +3,22 @@
  * Share workout achievements and stats as images or text
  */
 
-import { Share, Platform } from 'react-native';
-import * as Sharing from 'expo-sharing';
-import ViewShot from 'react-native-view-shot';
+import { Share, Platform, Alert } from 'react-native';
+import type ViewShot from 'react-native-view-shot';
 import { RefObject } from 'react';
+
+// Lazy load expo-sharing to prevent crashes if native module is missing
+let Sharing: typeof import('expo-sharing') | null = null;
+const getSharing = async () => {
+  if (Sharing) return Sharing;
+  try {
+    Sharing = await import('expo-sharing');
+  } catch (e) {
+    console.warn('[SharingService] expo-sharing module not available:', e);
+    Sharing = null;
+  }
+  return Sharing;
+};
 
 /**
  * Capture a ViewShot ref and share as image
@@ -15,16 +27,39 @@ export const shareImage = async (
   viewShotRef: RefObject<ViewShot>,
   message: string = ''
 ): Promise<void> => {
+  // 1. Check if ViewShot ref is ready
   if (!viewShotRef.current?.capture) {
-    throw new Error('ViewShot ref not ready');
+    console.warn('ViewShot ref not ready');
+    return;
   }
 
-  const uri = await viewShotRef.current.capture();
-  await Sharing.shareAsync(uri, {
-    mimeType: 'image/png',
-    dialogTitle: 'Share Achievement',
-    UTI: 'public.png',
-  });
+  // 2. Check if Sharing module is available
+  const SharingModule = await getSharing();
+  if (!SharingModule) {
+    Alert.alert('Sharing Unavailable', 'Sharing is not supported on this device configuration.');
+    return;
+  }
+
+  try {
+    const uri = await viewShotRef.current.capture();
+    if (!uri) {
+      throw new Error('Captured URI is null');
+    }
+
+    const available = await SharingModule.isAvailableAsync();
+    if (available) {
+      await SharingModule.shareAsync(uri, {
+        mimeType: 'image/png',
+        dialogTitle: 'Share Achievement',
+        UTI: 'public.png',
+      });
+    } else {
+      Alert.alert('Sharing Unavailable', 'Sharing is not available on this device.');
+    }
+  } catch (e) {
+    console.warn('Share failed:', e);
+    // Don't crash the app
+  }
 };
 
 /**

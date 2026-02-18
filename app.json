@@ -28,6 +28,15 @@
       "predictiveBackGestureEnabled": false,
       "package": "com.anonymous.vscodeworkout"
     },
+    "plugins": [
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/icon.png",
+          "color": "#667EEA"
+        }
+      ]
+    ],
     "web": {
       "favicon": "./assets/favicon.png"
     },

@@ -10,7 +10,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../../navigation/AppNavigator';
-import ViewShot from 'react-native-view-shot';
+import type ViewShot from 'react-native-view-shot';
 import GradientBackground from '../../components/ui/GradientBackground';
 import GlassCard from '../../components/ui/GlassCard';
 import { COLORS, GRADIENTS } from '../../constants/colors';

@@ -152,6 +152,12 @@ export interface UserPreferences {
   soundEffects: boolean;
   voiceGuidance: boolean;
   theme: 'dark' | 'light' | 'auto';
+  // Notification preferences
+  notificationsEnabled: boolean;
+  workoutReminderEnabled: boolean;
+  workoutReminderTime: string; // HH:MM format
+  waterReminderEnabled: boolean;
+  waterReminderInterval: number; // hours
 }
 
 export interface UserStats {
@@ -268,6 +274,45 @@ export interface WaterDailyLog {
 }
 
 // ============================================================================
+// NUTRITION LOG TYPES
+// ============================================================================
+
+export type MealType = 'breakfast' | 'lunch' | 'dinner' | 'snack';
+
+export interface NutritionFood {
+  name: string;
+  calories: number;
+  protein: number;
+  carbs: number;
+  fat: number;
+  serving: string;
+  confidence: number;
+}
+
+export interface NutritionEntry {
+  id: string;
+  date: string; // YYYY-MM-DD
+  mealType: MealType;
+  foods: NutritionFood[];
+  totalCalories: number;
+  totalProtein: number;
+  totalCarbs: number;
+  totalFat: number;
+  imageUri?: string;
+  notes?: string;
+  timestamp: number; // epoch ms
+}
+
+export interface NutritionDailyLog {
+  date: string;
+  entries: NutritionEntry[];
+  totalCalories: number;
+  totalProtein: number;
+  totalCarbs: number;
+  totalFat: number;
+}
+
+// ============================================================================
 // YOUTUBE VIDEO TYPES
 // ============================================================================
 
@@ -297,6 +342,7 @@ export type RootStackParamList = {
   ActiveWorkout: { workoutId: string };
   WorkoutHistory: undefined;
   Settings: undefined;
+  NutritionLog: undefined;
 };
 
 export type MainTabsParamList = {

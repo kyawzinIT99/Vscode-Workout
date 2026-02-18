@@ -3,11 +3,47 @@
  * Generate CSV and PDF exports of workout data
  */
 
-import * as FileSystem from 'expo-file-system';
-import * as Sharing from 'expo-sharing';
-import * as Print from 'expo-print';
+// Lazy load expo-file-system
+let FileSystem: typeof import('expo-file-system') | null = null;
+const getFileSystem = async () => {
+  if (FileSystem) return FileSystem;
+  try {
+    FileSystem = await import('expo-file-system');
+  } catch (e) {
+    console.warn('[ExportService] expo-file-system module not available:', e);
+    FileSystem = null;
+  }
+  return FileSystem;
+};
 import { WorkoutSession, UserStats, BodyMeasurement } from '../types/workout.types';
 import { loadWorkoutHistory, loadMeasurements } from './storage';
+import { Alert } from 'react-native';
+
+// Lazy load expo-sharing
+let Sharing: typeof import('expo-sharing') | null = null;
+const getSharing = async () => {
+  if (Sharing) return Sharing;
+  try {
+    Sharing = await import('expo-sharing');
+  } catch (e) {
+    console.warn('[ExportService] expo-sharing module not available:', e);
+    Sharing = null;
+  }
+  return Sharing;
+};
+
+// Lazy load expo-print
+let Print: typeof import('expo-print') | null = null;
+const getPrint = async () => {
+  if (Print) return Print;
+  try {
+    Print = await import('expo-print');
+  } catch (e) {
+    console.warn('[ExportService] expo-print module not available:', e);
+    Print = null;
+  }
+  return Print;
+};
 
 /**
  * Export workout history and body measurements as CSV
@@ -41,13 +77,25 @@ export const exportCSV = async (): Promise<void> => {
     csv += `${date},${m.weight ?? ''},${m.bodyFat ?? ''},${m.chest ?? ''},${m.waist ?? ''},${m.hips ?? ''},${m.arms ?? ''},${m.thighs ?? ''},${notes}\n`;
   }
 
-  const filePath = `${FileSystem.cacheDirectory}fitglass_export.csv`;
-  await FileSystem.writeAsStringAsync(filePath, csv);
-  await Sharing.shareAsync(filePath, {
-    mimeType: 'text/csv',
-    dialogTitle: 'Export Workout Data',
-    UTI: 'public.comma-separated-values-text',
-  });
+  const FileSystemModule = await getFileSystem();
+  if (!FileSystemModule) {
+    Alert.alert('Export Failed', 'File system access is not supported on this device.');
+    return;
+  }
+
+  const filePath = `${FileSystemModule.cacheDirectory}fitglass_export.csv`;
+  await FileSystemModule.writeAsStringAsync(filePath, csv);
+
+  const SharingModule = await getSharing();
+  if (SharingModule && (await SharingModule.isAvailableAsync())) {
+    await SharingModule.shareAsync(filePath, {
+      mimeType: 'text/csv',
+      dialogTitle: 'Export Workout Data',
+      UTI: 'public.comma-separated-values-text',
+    });
+  } else {
+    Alert.alert('Export Saved', `CSV saved to: ${filePath}`);
+  }
 };
 
 /**
@@ -225,10 +273,25 @@ export const exportPDF = async (userStats: UserStats): Promise<void> => {
     </html>
   `;
 
-  const { uri } = await Print.printToFileAsync({ html });
-  await Sharing.shareAsync(uri, {
-    mimeType: 'application/pdf',
-    dialogTitle: 'Export Progress Report',
-    UTI: 'com.adobe.pdf',
-  });
+  try {
+    const PrintModule = await getPrint();
+    if (PrintModule) {
+      const { uri } = await PrintModule.printToFileAsync({ html });
+      const SharingModule = await getSharing();
+      if (SharingModule && (await SharingModule.isAvailableAsync())) {
+        await SharingModule.shareAsync(uri, {
+          mimeType: 'application/pdf',
+          dialogTitle: 'Export Progress Report',
+          UTI: 'com.adobe.pdf',
+        });
+      } else {
+        Alert.alert('Export Saved', `PDF saved to: ${uri}`);
+      }
+    } else {
+      Alert.alert('Export Unavailable', 'Printing service is not supported on this device.');
+    }
+  } catch (e) {
+    console.warn('PDF Export failed:', e);
+    Alert.alert('Export Failed', 'Could not start PDF generation.');
+  }
 };

@@ -4,7 +4,7 @@
  */
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { User, WorkoutSession, UserStats, BodyMeasurement, WaterIntake, WaterDailyLog } from '../types/workout.types';
+import { User, WorkoutSession, UserStats, BodyMeasurement, WaterIntake, WaterDailyLog, NutritionEntry, NutritionDailyLog } from '../types/workout.types';
 
 // Storage Keys
 const STORAGE_KEYS = {
@@ -17,6 +17,7 @@ const STORAGE_KEYS = {
   BODY_MEASUREMENTS: '@fitglass_body_measurements',
   WATER_INTAKE: '@fitglass_water_intake',
   WATER_GOAL: '@fitglass_water_goal',
+  NUTRITION_LOG: '@fitglass_nutrition_log',
 };
 
 // ============================================================================
@@ -260,6 +261,64 @@ export const getWaterGoal = async (): Promise<number> => {
 };
 
 // ============================================================================
+// NUTRITION LOG
+// ============================================================================
+
+const loadAllNutritionEntries = async (): Promise<NutritionEntry[]> => {
+  try {
+    const jsonValue = await AsyncStorage.getItem(STORAGE_KEYS.NUTRITION_LOG);
+    return jsonValue != null ? JSON.parse(jsonValue) : [];
+  } catch (error) {
+    console.error('Error loading nutrition entries:', error);
+    return [];
+  }
+};
+
+const saveAllNutritionEntries = async (entries: NutritionEntry[]): Promise<void> => {
+  await AsyncStorage.setItem(STORAGE_KEYS.NUTRITION_LOG, JSON.stringify(entries));
+};
+
+export const saveNutritionEntry = async (entry: NutritionEntry): Promise<void> => {
+  const entries = await loadAllNutritionEntries();
+  entries.unshift(entry);
+  await saveAllNutritionEntries(entries);
+};
+
+export const loadTodayNutrition = async (): Promise<NutritionDailyLog> => {
+  const entries = await loadAllNutritionEntries();
+  const today = getTodayDate();
+  const todayEntries = entries.filter(e => e.date === today);
+  const totalCalories = todayEntries.reduce((sum, e) => sum + e.totalCalories, 0);
+  const totalProtein = todayEntries.reduce((sum, e) => sum + e.totalProtein, 0);
+  const totalCarbs = todayEntries.reduce((sum, e) => sum + e.totalCarbs, 0);
+  const totalFat = todayEntries.reduce((sum, e) => sum + e.totalFat, 0);
+  return { date: today, entries: todayEntries, totalCalories, totalProtein, totalCarbs, totalFat };
+};
+
+export const loadNutritionHistory = async (days: number = 7): Promise<NutritionDailyLog[]> => {
+  const entries = await loadAllNutritionEntries();
+  const logs: NutritionDailyLog[] = [];
+  for (let i = 0; i < days; i++) {
+    const d = new Date();
+    d.setDate(d.getDate() - i);
+    const dateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    const dayEntries = entries.filter(e => e.date === dateStr);
+    const totalCalories = dayEntries.reduce((sum, e) => sum + e.totalCalories, 0);
+    const totalProtein = dayEntries.reduce((sum, e) => sum + e.totalProtein, 0);
+    const totalCarbs = dayEntries.reduce((sum, e) => sum + e.totalCarbs, 0);
+    const totalFat = dayEntries.reduce((sum, e) => sum + e.totalFat, 0);
+    logs.push({ date: dateStr, entries: dayEntries, totalCalories, totalProtein, totalCarbs, totalFat });
+  }
+  return logs;
+};
+
+export const deleteNutritionEntry = async (entryId: string): Promise<void> => {
+  const entries = await loadAllNutritionEntries();
+  const updated = entries.filter(e => e.id !== entryId);
+  await saveAllNutritionEntries(updated);
+};
+
+// ============================================================================
 // ONBOARDING
 // ============================================================================
 
@@ -297,6 +356,7 @@ export const clearAllData = async (): Promise<void> => {
       STORAGE_KEYS.BODY_MEASUREMENTS,
       STORAGE_KEYS.WATER_INTAKE,
       STORAGE_KEYS.WATER_GOAL,
+      STORAGE_KEYS.NUTRITION_LOG,
     ]);
   } catch (error) {
     console.error('Error clearing all data:', error);

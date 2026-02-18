@@ -15,6 +15,7 @@ import {
   saveUserStats,
   clearAllData,
 } from '../services/storage';
+import { syncNotificationSchedule } from '../services/notifications';
 
 interface UserProviderProps {
   children: React.ReactNode;
@@ -42,7 +43,31 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
       ]);
 
       if (loadedUser) {
-        setUser(loadedUser);
+        // Backfill any missing preference fields for users created before updates
+        const defaultPrefs = {
+          measurementSystem: 'metric' as const,
+          defaultRestTime: 60,
+          hapticFeedback: true,
+          soundEffects: true,
+          voiceGuidance: false,
+          theme: 'dark' as const,
+          notificationsEnabled: false,
+          workoutReminderEnabled: false,
+          workoutReminderTime: '08:00',
+          waterReminderEnabled: false,
+          waterReminderInterval: 2,
+        };
+        const mergedPrefs = { ...defaultPrefs, ...loadedUser.preferences };
+        const userWithPrefs = { ...loadedUser, preferences: mergedPrefs };
+        setUser(userWithPrefs);
+        // Persist the merged prefs so future loads have all fields
+        if (JSON.stringify(loadedUser.preferences) !== JSON.stringify(mergedPrefs)) {
+          saveUser(userWithPrefs).catch(() => {});
+        }
+        // Re-sync notification schedule on app launch
+        if (mergedPrefs.notificationsEnabled) {
+          syncNotificationSchedule(mergedPrefs).catch(() => {});
+        }
       } else {
         // Create default user if none exists
         const defaultUser: User = {
@@ -57,6 +82,11 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
             soundEffects: true,
             voiceGuidance: false,
             theme: 'dark',
+            notificationsEnabled: false,
+            workoutReminderEnabled: false,
+            workoutReminderTime: '08:00',
+            waterReminderEnabled: false,
+            waterReminderInterval: 2,
           },
           stats: {
             totalWorkouts: 0,

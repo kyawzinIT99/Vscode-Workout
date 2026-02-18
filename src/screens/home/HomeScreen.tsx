@@ -17,8 +17,8 @@ import { TYPOGRAPHY } from '../../constants/typography';
 import { useUserContext } from '../../context/UserContext';
 import { WorkoutProgram } from '../../types/workout.types';
 import workoutsData from '../../data/workouts.json';
-import { loadTodayWater, addWaterIntake, getWaterGoal } from '../../services/storage';
-import { WaterDailyLog } from '../../types/workout.types';
+import { loadTodayWater, addWaterIntake, getWaterGoal, loadTodayNutrition } from '../../services/storage';
+import { WaterDailyLog, NutritionDailyLog } from '../../types/workout.types';
 import useWaterSounds from '../../hooks/useWaterSounds';
 
 const { width } = Dimensions.get('window');
@@ -30,6 +30,7 @@ const HomeScreen: React.FC = () => {
   const [timeOfDay, setTimeOfDay] = useState('');
   const [waterLog, setWaterLog] = useState<WaterDailyLog | null>(null);
   const [goalMl, setGoalMl] = useState(2000);
+  const [nutritionLog, setNutritionLog] = useState<NutritionDailyLog | null>(null);
   const { playDrop, playGoalReached } = useWaterSounds();
 
   useEffect(() => {
@@ -49,6 +50,7 @@ const HomeScreen: React.FC = () => {
     useCallback(() => {
       loadTodayWater().then(setWaterLog);
       getWaterGoal().then(setGoalMl);
+      loadTodayNutrition().then(setNutritionLog);
     }, [])
   );
 
@@ -220,6 +222,32 @@ const HomeScreen: React.FC = () => {
             <Ionicons name="water" size={18} color={COLORS.white} />
             <Text style={styles.waterQuickAddText}>+250ml</Text>
           </LinearGradient>
+        </TouchableOpacity>
+
+        {/* Nutrition Summary Widget */}
+        <TouchableOpacity
+          activeOpacity={0.8}
+          onPress={() => navigation.navigate('NutritionLog' as never)}
+        >
+          <GlassCard style={styles.nutritionCard} gradient={['rgba(17, 153, 142, 0.25)', 'rgba(56, 239, 125, 0.25)']}>
+            <View style={styles.nutritionCardContent}>
+              <View style={styles.nutritionLeft}>
+                <View style={styles.nutritionIcon}>
+                  <Ionicons name="restaurant" size={20} color="#38EF7D" />
+                </View>
+                <View style={styles.nutritionInfo}>
+                  <Text style={styles.nutritionTitle}>Today's Nutrition</Text>
+                  <Text style={styles.nutritionAmount}>
+                    {nutritionLog?.totalCalories || 0} kcal
+                  </Text>
+                  <Text style={styles.nutritionMacros}>
+                    P: {nutritionLog?.totalProtein?.toFixed(0) || 0}g  C: {nutritionLog?.totalCarbs?.toFixed(0) || 0}g  F: {nutritionLog?.totalFat?.toFixed(0) || 0}g
+                  </Text>
+                </View>
+              </View>
+              <Ionicons name="chevron-forward" size={20} color={COLORS.textTertiary} />
+            </View>
+          </GlassCard>
         </TouchableOpacity>
 
         {/* Featured Workouts */}
@@ -540,6 +568,49 @@ const styles = StyleSheet.create({
     color: COLORS.white,
     fontWeight: '600',
     fontSize: 13,
+  },
+  // Nutrition Widget
+  nutritionCard: {
+    padding: 16,
+    marginBottom: 24,
+  },
+  nutritionCardContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  nutritionLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    flex: 1,
+  },
+  nutritionIcon: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: 'rgba(56, 239, 125, 0.2)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  nutritionInfo: {
+    gap: 2,
+  },
+  nutritionTitle: {
+    ...TYPOGRAPHY.h4,
+    color: COLORS.textPrimary,
+    fontWeight: '600',
+    fontSize: 16,
+  },
+  nutritionAmount: {
+    ...TYPOGRAPHY.caption,
+    color: COLORS.textSecondary,
+    fontSize: 13,
+  },
+  nutritionMacros: {
+    ...TYPOGRAPHY.caption,
+    color: COLORS.textTertiary,
+    fontSize: 11,
   },
   sectionHeader: {
     flexDirection: 'row',
