@@ -45,7 +45,21 @@ const SettingsScreen: React.FC = () => {
     if (value) {
       const granted = await requestNotificationPermissions();
       if (!granted) {
-        Alert.alert('Permission Denied', 'Please enable notifications in your device settings.');
+        Alert.alert(
+          'Permission Denied',
+          'Please enable notifications in your device settings.',
+          [
+            { text: 'Cancel', style: 'cancel' },
+            {
+              text: 'Go to Settings',
+              onPress: () => {
+                // expo-linking is not imported, use React Native Linking
+                const { Linking } = require('react-native');
+                Linking.openSettings();
+              },
+            },
+          ]
+        );
         return;
       }
     }

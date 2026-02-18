@@ -65,7 +65,7 @@ export const requestNotificationPermissions = async (): Promise<boolean> => {
 
     return true;
   } catch (e) {
-    console.warn('[Notifications] requestPermissions failed:', e);
+    console.log('[Notifications] requestPermissions failed (suppressed warning):', e);
     return false;
   }
 };
@@ -100,7 +100,7 @@ export const scheduleWorkoutReminder = async (timeStr: string): Promise<void> =>
 export const cancelWorkoutReminder = async (): Promise<void> => {
   const N = await getNotifications();
   if (!N) return;
-  await N.cancelScheduledNotificationAsync(WORKOUT_REMINDER_ID).catch(() => {});
+  await N.cancelScheduledNotificationAsync(WORKOUT_REMINDER_ID).catch(() => { });
 };
 
 export const scheduleWaterReminders = async (intervalHours: number): Promise<void> => {
@@ -157,7 +157,7 @@ export const cancelWaterReminders = async (): Promise<void> => {
 export const cancelAllReminders = async (): Promise<void> => {
   const N = await getNotifications();
   if (!N) return;
-  await N.cancelAllScheduledNotificationsAsync().catch(() => {});
+  await N.cancelAllScheduledNotificationsAsync().catch(() => { });
 };
 
 /**
